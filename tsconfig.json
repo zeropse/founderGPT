@@ -22,6 +22,14 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "hooks/use-toast.js", "lib/utils.js"],
+  "include": [, "app/api/validate-idea/route.js"
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "hooks/use-toast.js",
+    "lib/utils.js",
+    "components/app/ResultsDisplay.js"
+  ],
   "exclude": ["node_modules"]
 }

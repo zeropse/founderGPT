@@ -8,6 +8,7 @@ import ResultsDisplay from "@/components/app/ResultsDisplay";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { handleDownloadPDF as downloadPDF } from "@/lib/pdfDownloader";
 
 export default function AppPage() {
   const router = useRouter();
@@ -19,6 +20,19 @@ export default function AppPage() {
   const [activeTab, setActiveTab] = useState("validation");
   const [retryTimeout, setRetryTimeout] = useState(null);
   const [enhancementStep, setEnhancementStep] = useState(0);
+
+  // Load isPremium from localStorage on mount
+  useEffect(() => {
+    const storedPremium = localStorage.getItem("isPremium");
+    if (storedPremium === "true") {
+      setIsPremium(true);
+    }
+  }, []);
+
+  // Save isPremium to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("isPremium", isPremium.toString());
+  }, [isPremium]);
 
   useEffect(() => {
     const stored = localStorage.getItem("promptsRemaining");
@@ -32,6 +46,17 @@ export default function AppPage() {
     } else if (stored) {
       setPromptsRemaining(Number.parseInt(stored, 10));
     }
+  }, [isPremium]);
+
+  useEffect(() => {
+    const storedPremium = localStorage.getItem("isPremium");
+    if (storedPremium === "true") {
+      setIsPremium(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("isPremium", isPremium.toString());
   }, [isPremium]);
 
   const handleSubmit = async (e) => {
@@ -114,12 +139,16 @@ export default function AppPage() {
   };
 
   const handleUpgrade = () => {
-    router.push("app/billing");
+    router.push("/app/billing");
   };
 
   const handleDownloadPDF = () => {
-    if (!results) return;
-    toast.success("PDF download feature coming soon!");
+    if (!results) {
+      alert("No data available to download");
+      return;
+    }
+
+    downloadPDF(results);
   };
 
   const resetForm = () => {
@@ -161,19 +190,21 @@ export default function AppPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left sidebar */}
         <motion.div variants={itemAnimation} className="lg:col-span-1">
-          <IdeaForm
-            idea={idea}
-            setIdea={setIdea}
-            handleSubmit={handleSubmit}
-            isLoading={isLoading}
-            promptsRemaining={promptsRemaining}
-            isPremium={isPremium}
-            handleUpgrade={handleUpgrade}
-            retryTimeout={retryTimeout}
-            results={results}
-            resetForm={resetForm}
-          />
-          <PlanCard isPremium={isPremium} handleUpgrade={handleUpgrade} />
+          <div className="space-y-6">
+            <IdeaForm
+              idea={idea}
+              setIdea={setIdea}
+              handleSubmit={handleSubmit}
+              isLoading={isLoading}
+              promptsRemaining={promptsRemaining}
+              isPremium={isPremium}
+              handleUpgrade={handleUpgrade}
+              retryTimeout={retryTimeout}
+              results={results}
+              resetForm={resetForm}
+            />
+            <PlanCard isPremium={isPremium} />
+          </div>
         </motion.div>
 
         {/* Main content */}
@@ -194,7 +225,7 @@ export default function AppPage() {
                     }}
                     transition={{
                       duration: 2,
-                      repeat: Infinity,
+                      repeat: Number.POSITIVE_INFINITY,
                       repeatType: "reverse",
                     }}
                   >

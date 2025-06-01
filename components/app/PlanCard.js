@@ -14,7 +14,7 @@ import Link from "next/link";
 
 export default function PlanCard({ isPremium }) {
   return (
-    <Card className="mt-6 border-border shadow-sm">
+    <Card className="border-border shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           Your Plan

@@ -1,6 +1,21 @@
 "use client";
 
-import { Download, Lock, Sparkles } from "lucide-react";
+import {
+  Download,
+  Lock,
+  Sparkles,
+  Code,
+  Users,
+  DollarSign,
+  Globe,
+  Lightbulb,
+  TrendingUp,
+  Server,
+  LinkIcon,
+  Folder,
+  RefreshCw,
+  Activity,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +26,9 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 
 const PremiumLock = ({ feature }) => (
   <div className="bg-muted/50 rounded-lg p-6 text-center">
@@ -20,8 +37,10 @@ const PremiumLock = ({ feature }) => (
     <p className="text-muted-foreground mb-4 max-w-md mx-auto">
       Upgrade to Premium to unlock {feature} for your idea.
     </p>
-    <Link href="/billing">
-      <Button variant="default">Upgrade for $5/month</Button>
+    <Link href="/app/billing">
+      <Button variant="default" className="cursor-pointer">
+        Upgrade for $5/month
+      </Button>
     </Link>
   </div>
 );
@@ -55,11 +74,227 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-const formatContent = (content) => {
-  if (!content) return "No data available";
-  if (Array.isArray(content)) return content.join("\n\n");
-  if (typeof content === "string") return content;
-  return JSON.stringify(content, null, 2);
+const cleanMarkdownContent = (content) => {
+  if (!content) return content;
+
+  let cleaned = content;
+  if (typeof content === "string") {
+    // Remove standalone asterisks that are used as bullet points
+    cleaned = content
+      .replace(/^\*\s+/gm, "• ") // Replace asterisk bullets with bullet points
+      .replace(/\*([^*]+)\*:/g, "**$1:**") // Fix bold formatting for headers
+      .replace(/\*\s*$/gm, "") // Remove trailing asterisks
+      .replace(/\*{2,}/g, "**"); // Normalize multiple asterisks to double
+  }
+  return cleaned;
+};
+
+const MarkdownContent = ({ content }) => {
+  if (!content)
+    return <p className="text-muted-foreground">No data available</p>;
+
+  let formattedContent = content;
+  if (Array.isArray(content)) {
+    formattedContent = content.join("\n\n");
+  } else if (typeof content !== "string") {
+    formattedContent = JSON.stringify(content, null, 2);
+  }
+
+  const cleanedContent = cleanMarkdownContent(formattedContent);
+
+  return (
+    <div className="prose prose-sm dark:prose-invert max-w-none">
+      <ReactMarkdown
+        components={{
+          h1: ({ children }) => (
+            <h1 className="text-xl font-bold mb-4 text-foreground border-b border-border pb-2">
+              {children}
+            </h1>
+          ),
+          h2: ({ children }) => (
+            <h2 className="text-lg font-semibold mb-3 text-foreground mt-6">
+              {children}
+            </h2>
+          ),
+          h3: ({ children }) => (
+            <h3 className="text-base font-medium mb-2 text-foreground mt-4">
+              {children}
+            </h3>
+          ),
+          p: ({ children }) => (
+            <p className="mb-3 text-foreground leading-relaxed">{children}</p>
+          ),
+          strong: ({ children }) => {
+            const cleanText =
+              typeof children === "string"
+                ? children.replace(/^\*+|\*+$/g, "")
+                : children;
+            return (
+              <span className="font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">
+                {cleanText}
+              </span>
+            );
+          },
+          em: ({ children }) => (
+            <em className="italic text-foreground">{children}</em>
+          ),
+          ul: ({ children }) => <ul className="space-y-2 mb-4">{children}</ul>,
+          ol: ({ children }) => <ol className="space-y-2 mb-4">{children}</ol>,
+          li: ({ children }) => (
+            <li className="text-foreground flex items-start gap-3">
+              <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2.5 flex-shrink-0"></span>
+              <span className="flex-1">{children}</span>
+            </li>
+          ),
+          code: ({ children }) => (
+            <code className="bg-muted px-2 py-1 rounded text-sm font-mono text-foreground border">
+              {children}
+            </code>
+          ),
+          pre: ({ children }) => (
+            <pre className="bg-muted p-4 rounded-lg overflow-x-auto mb-4 border">
+              {children}
+            </pre>
+          ),
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground mb-4 bg-muted/30 py-3 rounded-r">
+              {children}
+            </blockquote>
+          ),
+        }}
+      >
+        {cleanedContent}
+      </ReactMarkdown>
+    </div>
+  );
+};
+
+const TechStackDisplay = ({ techStack }) => {
+  if (!techStack)
+    return (
+      <p className="text-muted-foreground">No tech stack data available</p>
+    );
+
+  if (typeof techStack === "string") {
+    return <MarkdownContent content={techStack} />;
+  }
+
+  if (typeof techStack === "object" && !Array.isArray(techStack)) {
+    const techIcons = {
+      frontend: <Globe className="h-5 w-5" />,
+      backend: <Code className="h-5 w-5" />,
+      database: <TrendingUp className="h-5 w-5" />,
+      hosting: <Lightbulb className="h-5 w-5" />,
+      infrastructure: <Server className="h-5 w-5" />,
+      authentication: <Lock className="h-5 w-5" />,
+      apis: <LinkIcon className="h-5 w-5" />,
+      storage: <Folder className="h-5 w-5" />,
+      cicd: <RefreshCw className="h-5 w-5" />,
+      monitoring: <Activity className="h-5 w-5" />,
+      ai: <Sparkles className="h-5 w-5" />,
+    };
+
+    return (
+      <div className="space-y-4">
+        {Object.entries(techStack).map(([category, technology], index) => (
+          <div
+            key={index}
+            className="p-4 bg-gradient-to-r from-muted/50 to-muted/30 rounded-lg border"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                {techIcons[category.toLowerCase()] || (
+                  <Code className="h-5 w-5" />
+                )}
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground capitalize text-lg">
+                  {category.replace(/([A-Z])/g, " $1").trim()}
+                </h3>
+                <Badge variant="outline" className="mt-1">
+                  Recommended
+                </Badge>
+              </div>
+            </div>
+            <div className="ml-14">
+              {typeof technology === "string" ? (
+                <p className="text-foreground font-medium">
+                  {technology.replace(/^\*\*|\*\*$/g, "")}
+                </p>
+              ) : (
+                <MarkdownContent content={technology} />
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return <MarkdownContent content={techStack} />;
+};
+
+const PersonaCard = ({ persona, index }) => {
+  const personaIcons = [
+    <Users key="users-icon" className="h-5 w-5" />,
+    <TrendingUp key="trending-icon" className="h-5 w-5" />,
+    <DollarSign key="dollar-icon" className="h-5 w-5" />,
+  ];
+
+  // Clean the persona name from markdown formatting
+  const cleanName =
+    typeof persona.name === "string"
+      ? persona.name.replace(/^\*\*|\*\*$/g, "")
+      : persona.name;
+
+  return (
+    <Card className="border-2 hover:shadow-lg transition-all duration-200 h-full cursor-pointer">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg">
+            {personaIcons[index % personaIcons.length]}
+          </div>
+          <div>
+            <span className="font-bold text-foreground">{cleanName}</span>
+            <Badge variant="secondary" className="ml-2">
+              Persona {index + 1}
+            </Badge>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="p-4 bg-red-500/5 rounded-lg border border-red-500/20">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <span className="font-semibold text-red-600 dark:text-red-400 text-sm uppercase tracking-wide">
+              Pain Points
+            </span>
+          </div>
+          <MarkdownContent content={persona.painPoints} />
+        </div>
+
+        <div className="p-4 bg-blue-500/5 rounded-lg border border-blue-500/20">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span className="font-semibold text-blue-600 dark:text-blue-400 text-sm uppercase tracking-wide">
+              Goals
+            </span>
+          </div>
+          <MarkdownContent content={persona.goals} />
+        </div>
+
+        <div className="p-4 bg-emerald-500/5 rounded-lg border border-emerald-500/20">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400 text-sm uppercase tracking-wide">
+              Solution
+            </span>
+          </div>
+          <MarkdownContent content={persona.solution} />
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
 
 export default function ResultsDisplay({
@@ -89,7 +324,7 @@ export default function ResultsDisplay({
   if (!results) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card className="overflow-hidden border-border shadow-md">
         <CardHeader className="bg-gradient-to-r from-violet-500/5 to-violet-500/10">
           <CardTitle className="flex items-center gap-2">
@@ -100,25 +335,33 @@ export default function ResultsDisplay({
             Your raw idea refined for clarity and impact
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
-          <ScrollArea className="h-full max-h-[400px]">
-            <div className="prose dark:prose-invert max-w-none">
-              <p className="whitespace-pre-wrap">
-                {formatContent(results.enhancedIdea)}
-              </p>
-            </div>
+        <CardContent className="p-4 sm:p-6">
+          <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
+            <MarkdownContent content={results.enhancedIdea} />
           </ScrollArea>
         </CardContent>
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full">
-          <TabsTrigger value="validation">Market</TabsTrigger>
-          <TabsTrigger value="features">Features</TabsTrigger>
-          <TabsTrigger value="tech">Tech Stack</TabsTrigger>
-          <TabsTrigger value="monetization">Revenue</TabsTrigger>
-          <TabsTrigger value="landing">Landing</TabsTrigger>
-          <TabsTrigger value="personas">Personas</TabsTrigger>
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 w-full">
+          <TabsTrigger value="validation" className="cursor-pointer">
+            Market
+          </TabsTrigger>
+          <TabsTrigger value="features" className="cursor-pointer">
+            Features
+          </TabsTrigger>
+          <TabsTrigger value="tech" className="cursor-pointer">
+            Tech Stack
+          </TabsTrigger>
+          <TabsTrigger value="monetization" className="cursor-pointer">
+            Revenue
+          </TabsTrigger>
+          <TabsTrigger value="landing" className="cursor-pointer">
+            Landing
+          </TabsTrigger>
+          <TabsTrigger value="personas" className="cursor-pointer">
+            Personas
+          </TabsTrigger>
         </TabsList>
 
         {/* Market Validation Tab */}
@@ -130,17 +373,15 @@ export default function ResultsDisplay({
                 Analysis of market fit and competition
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {isPremium ? (
-                <ScrollArea className="h-full max-h-[400px]">
-                  <div className="prose dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap">
-                      {formatContent(results.marketValidation)}
-                    </div>
-                  </div>
+                <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
+                  <MarkdownContent content={results.marketValidation} />
                 </ScrollArea>
               ) : (
-                <PremiumLock feature="market validation insights" />
+                <div className="p-6">
+                  <PremiumLock feature="market validation insights" />
+                </div>
               )}
             </CardContent>
           </Card>
@@ -155,17 +396,15 @@ export default function ResultsDisplay({
                 Core features for your minimum viable product
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {isPremium ? (
-                <ScrollArea className="h-full max-h-[400px]">
-                  <div className="prose dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap">
-                      {formatContent(results.mvpFeatures)}
-                    </div>
-                  </div>
+                <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
+                  <MarkdownContent content={results.mvpFeatures} />
                 </ScrollArea>
               ) : (
-                <PremiumLock feature="MVP feature recommendations" />
+                <div className="p-6">
+                  <PremiumLock feature="MVP feature recommendations" />
+                </div>
               )}
             </CardContent>
           </Card>
@@ -180,26 +419,15 @@ export default function ResultsDisplay({
                 Recommended technologies for your project
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {isPremium ? (
-                <ScrollArea className="h-full max-h-[400px]">
-                  <div className="space-y-4">
-                    {results.techStack &&
-                      Object.entries(results.techStack).map(([key, value]) => (
-                        <div
-                          key={key}
-                          className="p-4 bg-muted/50 rounded-lg border"
-                        >
-                          <h3 className="font-medium capitalize mb-2">
-                            {key}:
-                          </h3>
-                          <p className="text-muted-foreground">{value}</p>
-                        </div>
-                      ))}
-                  </div>
+                <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
+                  <TechStackDisplay techStack={results.techStack} />
                 </ScrollArea>
               ) : (
-                <PremiumLock feature="tech stack recommendations" />
+                <div className="p-6">
+                  <PremiumLock feature="tech stack recommendations" />
+                </div>
               )}
             </CardContent>
           </Card>
@@ -212,17 +440,15 @@ export default function ResultsDisplay({
               <CardTitle>Monetization Strategy</CardTitle>
               <CardDescription>Revenue models for your product</CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {isPremium ? (
-                <ScrollArea className="h-full max-h-[400px]">
-                  <div className="prose dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap">
-                      {formatContent(results.monetization)}
-                    </div>
-                  </div>
+                <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
+                  <MarkdownContent content={results.monetization} />
                 </ScrollArea>
               ) : (
-                <PremiumLock feature="monetization strategy recommendations" />
+                <div className="p-6">
+                  <PremiumLock feature="monetization strategy recommendations" />
+                </div>
               )}
             </CardContent>
           </Card>
@@ -237,48 +463,72 @@ export default function ResultsDisplay({
                 Copy suggestions for your landing page
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {isPremium ? (
-                <ScrollArea className="h-full max-h-[400px]">
+                <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
                   <div className="space-y-6">
                     {results.landingPage && (
                       <>
-                        <div className="p-4 bg-gradient-to-r from-violet-500/5 to-violet-500/10 rounded-lg border">
-                          <h3 className="text-sm font-medium mb-2">Headline</h3>
-                          <p className="text-2xl font-bold">
+                        <div className="p-6 bg-gradient-to-r from-violet-500/5 to-violet-500/10 rounded-lg border">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Globe className="h-5 w-5 text-violet-600" />
+                            <h3 className="text-sm font-medium text-violet-700 dark:text-violet-300 uppercase tracking-wide">
+                              Headline
+                            </h3>
+                          </div>
+                          <p className="text-2xl font-bold text-foreground leading-tight">
                             {results.landingPage.headline}
                           </p>
                         </div>
-                        <div className="p-4 bg-muted/50 rounded-lg border">
-                          <h3 className="text-sm font-medium mb-2">
-                            Subheading
-                          </h3>
-                          <p className="text-lg">
+
+                        <div className="p-6 bg-muted/50 rounded-lg border">
+                          <div className="flex items-center gap-2 mb-3">
+                            <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                              Subheading
+                            </h3>
+                          </div>
+                          <p className="text-lg text-foreground leading-relaxed">
                             {results.landingPage.subheading}
                           </p>
                         </div>
-                        <div className="p-4 bg-gradient-to-r from-emerald-500/5 to-emerald-500/10 rounded-lg border">
-                          <h3 className="text-sm font-medium mb-2">
-                            Call to Action
-                          </h3>
-                          <Button size="lg">{results.landingPage.cta}</Button>
-                        </div>
-                        {results.landingPage.benefits && (
-                          <div className="p-4 bg-muted/30 rounded-lg border">
-                            <h3 className="text-sm font-medium mb-4">
-                              Key Benefits
+
+                        <div className="p-6 bg-gradient-to-r from-emerald-500/5 to-emerald-500/10 rounded-lg border">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Lightbulb className="h-5 w-5 text-emerald-600" />
+                            <h3 className="text-sm font-medium text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
+                              Call to Action
                             </h3>
-                            <div className="space-y-3">
+                          </div>
+                          <Button
+                            size="lg"
+                            className="font-semibold text-lg px-8 py-3 cursor-pointer"
+                          >
+                            {results.landingPage.cta}
+                          </Button>
+                        </div>
+
+                        {results.landingPage.benefits && (
+                          <div className="p-6 bg-muted/30 rounded-lg border">
+                            <div className="flex items-center gap-2 mb-4">
+                              <Users className="h-5 w-5 text-foreground" />
+                              <h3 className="text-sm font-medium text-foreground uppercase tracking-wide">
+                                Key Benefits
+                              </h3>
+                            </div>
+                            <div className="space-y-4">
                               {results.landingPage.benefits.map(
                                 (benefit, i) => (
                                   <div
                                     key={i}
-                                    className="flex items-start gap-3 p-3 bg-background rounded border"
+                                    className="flex items-start gap-4 p-4 bg-background rounded-lg border shadow-sm hover:shadow-md transition-shadow"
                                   >
-                                    <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
+                                    <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                                       {i + 1}
                                     </div>
-                                    <p>{benefit}</p>
+                                    <div className="flex-1 min-w-0">
+                                      <MarkdownContent content={benefit} />
+                                    </div>
                                   </div>
                                 )
                               )}
@@ -290,7 +540,9 @@ export default function ResultsDisplay({
                   </div>
                 </ScrollArea>
               ) : (
-                <PremiumLock feature="landing page content suggestions" />
+                <div className="p-6">
+                  <PremiumLock feature="landing page content suggestions" />
+                </div>
               )}
             </CardContent>
           </Card>
@@ -305,58 +557,32 @@ export default function ResultsDisplay({
                 Potential user types for your product
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {isPremium ? (
-                <ScrollArea className="h-full max-h-[400px]">
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
+                  <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
                     {results.userPersonas &&
                       results.userPersonas.map((persona, i) => (
-                        <Card key={i} className="border-2">
-                          <CardHeader className="pb-3">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                                {i + 1}
-                              </div>
-                              {persona.name}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-4 text-sm">
-                            <div className="p-3 bg-red-500/5 rounded-lg border border-red-500/20">
-                              <span className="font-semibold text-red-600 dark:text-red-400 block mb-1">
-                                Pain Points
-                              </span>
-                              <p>{persona.painPoints}</p>
-                            </div>
-                            <div className="p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
-                              <span className="font-semibold text-blue-600 dark:text-blue-400 block mb-1">
-                                Goals
-                              </span>
-                              <p>{persona.goals}</p>
-                            </div>
-                            <div className="p-3 bg-emerald-500/5 rounded-lg border border-emerald-500/20">
-                              <span className="font-semibold text-emerald-600 dark:text-emerald-400 block mb-1">
-                                Solution
-                              </span>
-                              <p>{persona.solution}</p>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <PersonaCard key={i} persona={persona} index={i} />
                       ))}
                   </div>
                 </ScrollArea>
               ) : (
-                <PremiumLock feature="user persona analysis" />
+                <div className="p-6">
+                  <PremiumLock feature="user persona analysis" />
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
+      {/* Download PDF Button */}
       {isPremium && results && (
         <Card className="border-border shadow-sm">
           <CardContent className="pt-6">
             <Button
-              className="w-full"
+              className="w-full cursor-pointer"
               variant="outline"
               onClick={handleDownloadPDF}
             >
