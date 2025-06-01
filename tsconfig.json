@@ -22,7 +22,7 @@
       "@/*": ["./*"]
     }
   },
-  "include": [, "app/api/validate-idea/route.js"
+  "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",

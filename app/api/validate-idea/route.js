@@ -6,8 +6,16 @@ const API_CONFIG = {
   retryDelay: 1000,
 };
 
-const SYSTEM_PROMPT =
-  "You are an expert product discovery assistant. You help founders clarify, validate, and break down SaaS/app ideas using industry-standard workflows.";
+const SYSTEM_PROMPT = `You are an expert product discovery assistant. You help founders clarify, validate, and break down SaaS/app ideas using industry-standard workflows.
+
+IMPORTANT INSTRUCTIONS:
+- Provide direct, actionable responses without asking questions back to the user
+- Work with whatever information is provided, even if it seems incomplete
+- Make reasonable assumptions when details are missing
+- Always deliver concrete, specific recommendations
+- Never request clarification or additional information
+- Focus on being helpful and decisive rather than comprehensive
+- If an idea is vague, enhance it with reasonable assumptions and provide analysis based on your interpretation`;
 
 function validateInput(idea) {
   if (!idea) {
@@ -191,16 +199,16 @@ class OpenRouterClient {
 
 const PROMPTS = {
   enhance: (idea) =>
-    `Refine and rewrite this product idea for clarity and impact. Make it concise, compelling, and specific:\n\n${idea}`,
+    `Refine and rewrite this product idea for clarity and impact. Make it specific. Work with the information provided and make reasonable assumptions if details are missing. Do not ask for additional information. Do not include introductory phrases like "Here is" or "Here are". Start directly with the enhanced idea: (minimum 150-200 words)\n\n${idea}`,
 
   marketValidation: (enhancedIdea) =>
-    `Analyze this SaaS/app idea for market fit, uniqueness, and potential competitors. Provide actionable insights in bullet format:\n\n${enhancedIdea}`,
+    `Analyze this SaaS/app idea for market fit, uniqueness, and potential competitors. Provide actionable insights in bullet format. Make reasonable assumptions about the target market and provide concrete analysis. Do not include introductory phrases like "Here are the insights" or similar. Start directly with bullet points:\n\n${enhancedIdea}`,
 
   mvpFeatures: (enhancedIdea) =>
-    `List exactly 5 core MVP features that would make this idea functional but lean. Focus on essential features only. Format as a numbered list:\n\n${enhancedIdea}`,
+    `List exactly 5 core MVP features that would make this idea functional but lean. Focus on essential features only. Format as a numbered list. Make decisions based on the idea provided without requesting clarification. Do not include introductory phrases like "Here are the 5 core features" or similar. Start directly with the numbered list:\n\n${enhancedIdea}`,
 
   techStack: (enhancedIdea) =>
-    `Suggest the most suitable and modern tech stack for building this MVP. Consider scalability and ease of development. Format exactly as:
+    `Suggest the most suitable and modern tech stack for building this MVP. Consider scalability and ease of development. Make specific technology recommendations based on the idea provided. Do not include introductory phrases. Format exactly as:
 Frontend: [specific technology/framework]
 Backend: [specific technology/framework]
 Database: [specific database solution]
@@ -215,10 +223,10 @@ Optional AI/ML: [if relevant, specify model or platform]
 Idea: ${enhancedIdea}`,
 
   monetization: (enhancedIdea) =>
-    `Recommend 3-5 realistic monetization strategies for a bootstrapped solo founder launching this product. Focus on strategies suitable for early-stage products. Format as bullet points:\n\n${enhancedIdea}`,
+    `Recommend 3-5 realistic monetization strategies for a bootstrapped solo founder launching this product. Focus on strategies suitable for early-stage products. Format as bullet points. Provide specific recommendations without asking for business model preferences. Do not include introductory phrases like "Here are the monetization strategies" or similar. Start directly with bullet points:\n\n${enhancedIdea}`,
 
   landingPage: (enhancedIdea) =>
-    `Create compelling landing page copy for this product. Make it conversion-focused and benefit-driven. Format exactly as:
+    `Create compelling landing page copy for this product. Make it conversion-focused and benefit-driven. Work with the information provided and create compelling copy without requesting additional details. Do not include introductory phrases. Format exactly as:
 Headline: [compelling headline under 60 characters]
 Subheading: [descriptive subheading under 120 characters]
 CTA: [call to action button text under 20 characters]
@@ -229,7 +237,7 @@ Benefit 3: [third key benefit]
 Idea: ${enhancedIdea}`,
 
   userPersonas: (enhancedIdea) =>
-    `Define 3 distinct user personas for this product. Make them specific and realistic. Format exactly as:
+    `Define 2 distinct user personas for this product. Make them specific and realistic based on the idea provided. Make reasonable assumptions about the target users. Do not include introductory phrases. Format exactly as:
 
 1. [Persona Name and Role]
 Pain Points: [their main challenges]
@@ -237,11 +245,6 @@ Goals: [what they want to achieve]
 Solution: [how the product helps them]
 
 2. [Persona Name and Role]
-Pain Points: [their main challenges]
-Goals: [what they want to achieve]
-Solution: [how the product helps them]
-
-3. [Persona Name and Role]
 Pain Points: [their main challenges]
 Goals: [what they want to achieve]
 Solution: [how the product helps them]
