@@ -1,29 +1,35 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { AlertCircle, ArrowRight, Loader2, Sparkles } from "lucide-react";
 
-export default function IdeaForm({ 
-  idea, 
-  setIdea, 
-  handleSubmit, 
-  isLoading, 
-  promptsRemaining, 
-  isPremium, 
-  handleUpgrade, 
-  retryTimeout, 
-  results, 
-  resetForm 
+export default function IdeaForm({
+  idea,
+  setIdea,
+  handleSubmit,
+  isLoading,
+  promptsRemaining,
+  isPremium,
+  handleUpgrade,
+  retryTimeout,
+  results,
+  resetForm,
 }) {
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
         <CardTitle>Idea Validator</CardTitle>
-        <CardDescription>Enter your raw idea, and our AI will help refine and validate it</CardDescription>
+        <CardDescription>
+          Enter your raw idea, and our AI will help refine and validate it
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -38,8 +44,13 @@ export default function IdeaForm({
           <div className="flex flex-col space-y-3">
             <Button
               type="submit"
-              disabled={isLoading || promptsRemaining === 0 || !idea.trim() || retryTimeout !== null}
-              className="w-full"
+              disabled={
+                isLoading ||
+                promptsRemaining === 0 ||
+                !idea.trim() ||
+                retryTimeout !== null
+              }
+              className="w-full cursor-pointer"
             >
               {isLoading ? (
                 <>
@@ -59,7 +70,12 @@ export default function IdeaForm({
             </Button>
 
             {results && (
-              <Button type="button" variant="outline" onClick={resetForm} className="w-full">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={resetForm}
+                className="w-full cursor-pointer"
+              >
                 Start Over
               </Button>
             )}
@@ -70,7 +86,11 @@ export default function IdeaForm({
                   <AlertCircle className="h-4 w-4" />
                   <span className="text-sm">Daily limit reached</span>
                 </div>
-                <Button variant="outline" className="w-full" onClick={handleUpgrade}>
+                <Button
+                  variant="outline"
+                  className="w-full cursor-pointer"
+                  onClick={handleUpgrade}
+                >
                   Upgrade for $5/month
                 </Button>
               </div>

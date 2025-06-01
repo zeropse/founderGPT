@@ -6,18 +6,18 @@ import { motion } from "framer-motion";
 export default function Footer() {
   const footerAnimation = {
     hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
       transition: {
         duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+      },
+    },
   };
 
   return (
-    <motion.footer 
+    <motion.footer
       initial="hidden"
       whileInView="visible"
       variants={footerAnimation}
@@ -34,7 +34,7 @@ export default function Footer() {
             {[
               { name: "Twitter", url: "https://twitter.com/zer0pse" },
               { name: "GitHub", url: "https://github.com/zeropse" },
-              { name: "Instagram", url: "https://instagram.com/zeropse" }
+              { name: "Instagram", url: "https://instagram.com/zeropse" },
             ].map((social) => (
               <motion.a
                 key={social.name}

@@ -9,18 +9,18 @@ import { motion } from "framer-motion";
 export default function Navbar() {
   const navAnimation = {
     hidden: { y: -20, opacity: 0 },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
       transition: {
         duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+      },
+    },
   };
 
   return (
-    <motion.nav 
+    <motion.nav
       initial="hidden"
       animate="visible"
       variants={navAnimation}
@@ -28,25 +28,20 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <motion.div 
+          <motion.div
             className="flex items-center"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <Link href="/" className="flex items-center group">
-              <Laptop className="h-8 w-8 text-primary mr-2 group-hover:text-violet-500 transition-colors" />
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-violet-500">
-                FoundrGPT
-              </span>
+              <Laptop className="h-8 w-8 text-primary mr-2" />
+              <span className="text-xl font-bold">FoundrGPT</span>
             </Link>
           </motion.div>
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            <Button 
-              className="bg-gradient-to-r from-primary to-violet-500 hover:opacity-90 transition-opacity"
-              asChild
-            >
-              <Link href="/app">Dashboard</Link>
+            <Button className="hover:opacity-70 transition-opacity" asChild>
+              <Link href="/get-started">Get Started</Link>
             </Button>
           </div>
         </div>

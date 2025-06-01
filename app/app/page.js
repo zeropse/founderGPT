@@ -43,12 +43,16 @@ export default function AppPage() {
     }
 
     if (idea.trim().length < 10) {
-      toast.error("Please provide a more detailed idea (at least 10 characters)");
+      toast.error(
+        "Please provide a more detailed idea (at least 10 characters)"
+      );
       return;
     }
 
     if (promptsRemaining <= 0) {
-      toast.error("You've reached your daily limit. Please upgrade or try again tomorrow.");
+      toast.error(
+        "You've reached your daily limit. Please upgrade or try again tomorrow."
+      );
       return;
     }
 
@@ -80,7 +84,9 @@ export default function AppPage() {
           setRetryTimeout(null);
         }, 30000);
         setRetryTimeout(timeout);
-        throw new Error("Rate limit exceeded. Please wait 30 seconds before trying again.");
+        throw new Error(
+          "Rate limit exceeded. Please wait 30 seconds before trying again."
+        );
       }
 
       if (!response.ok) {
@@ -99,14 +105,16 @@ export default function AppPage() {
       toast.success("Idea validated successfully!");
     } catch (error) {
       console.error("Validation error:", error);
-      toast.error(error.message || "Failed to validate idea. Please try again.");
+      toast.error(
+        error.message || "Failed to validate idea. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleUpgrade = () => {
-    router.push("/app/billing");
+    router.push("app/billing");
   };
 
   const handleDownloadPDF = () => {
@@ -126,9 +134,9 @@ export default function AppPage() {
       opacity: 1,
       transition: {
         duration: 0.5,
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
 
   const itemAnimation = {
@@ -138,13 +146,13 @@ export default function AppPage() {
       y: 0,
       transition: {
         duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+      },
+    },
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="visible"
       variants={containerAnimation}
@@ -172,7 +180,7 @@ export default function AppPage() {
         <motion.div variants={itemAnimation} className="lg:col-span-2">
           <AnimatePresence mode="wait">
             {!results && !isLoading && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -192,12 +200,10 @@ export default function AppPage() {
                   >
                     <Sparkles className="h-12 w-12 text-primary mx-auto" />
                   </motion.div>
-                  <h3 className="text-2xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-violet-500">
-                    Validate Your Idea
-                  </h3>
+                  <h3 className="text-2xl font-semibold">Validate Your Idea</h3>
                   <p className="text-muted-foreground max-w-sm mx-auto">
-                    Enter your idea in the form and hit "Validate Idea" to get started. Our AI will analyze and provide
-                    insights.
+                    Enter your idea in the form and hit "Validate Idea" to get
+                    started. Our AI will analyze and provide insights.
                   </p>
                 </div>
               </motion.div>

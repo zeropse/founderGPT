@@ -2,7 +2,13 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { CheckCircle, Lock } from "lucide-react";
 import Link from "next/link";
 
@@ -19,7 +25,9 @@ export default function PlanCard({ isPremium }) {
           )}
         </CardTitle>
         <CardDescription>
-          {isPremium ? "Premium Plan - Full Access" : "Free Plan - Limited Access"}
+          {isPremium
+            ? "Premium Plan - Full Access"
+            : "Free Plan - Limited Access"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -66,8 +74,8 @@ export default function PlanCard({ isPremium }) {
           ))}
 
           {!isPremium && (
-            <Link href="/billing">
-              <Button className="w-full mt-4">
+            <Link href="/app/billing">
+              <Button className="w-full mt-4 cursor-pointer">
                 <CheckCircle className="mr-2 h-4 w-4" />
                 Upgrade to Premium
               </Button>

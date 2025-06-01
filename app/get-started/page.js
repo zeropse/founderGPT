@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -12,9 +13,9 @@ export default function GetStartedPage() {
       opacity: 1,
       transition: {
         duration: 0.5,
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
 
   const itemAnimation = {
@@ -24,15 +25,15 @@ export default function GetStartedPage() {
       y: 0,
       transition: {
         duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+      },
+    },
   };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center relative overflow-hidden">
       <motion.div
-        className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-violet-500/10"
+        className="absolute inset-0"
         animate={{
           backgroundPosition: ["0% 0%", "100% 100%"],
         }}
@@ -54,22 +55,20 @@ export default function GetStartedPage() {
               <Sparkles className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Welcome to FoundrGPT</span>
             </div>
-            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-violet-500 to-indigo-500">
-              Get Started with FoundrGPT
-            </h1>
+            <h1 className="text-4xl font-bold">Get Started with FoundrGPT</h1>
             <p className="text-muted-foreground">
               Join thousands of founders validating their ideas with AI
             </p>
           </motion.div>
 
           <motion.div variants={itemAnimation} className="space-y-4">
-            <Button 
-              className="w-full text-lg h-12 bg-gradient-to-r from-violet-500 to-indigo-500 hover:opacity-90 transition-opacity" 
-              size="lg" 
+            <Button
+              className="w-full text-lg h-12 hover:opacity-90 transition-opacity"
+              size="lg"
               asChild
             >
               <Link href="/app">
-                Continue to Dashboard
+                Sign in to FoundrGPT
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
@@ -85,15 +84,13 @@ export default function GetStartedPage() {
               </div>
             </div>
 
-            <Button 
-              variant="outline" 
-              className="w-full text-lg h-12 border-2" 
-              size="lg" 
+            <Button
+              variant="outline"
+              className="w-full text-lg h-12 border-2"
+              size="lg"
               asChild
             >
-              <Link href="/">
-                Back to Home
-              </Link>
+              <Link href="/">Back to Home</Link>
             </Button>
           </motion.div>
         </motion.div>

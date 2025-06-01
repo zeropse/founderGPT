@@ -6,18 +6,18 @@ import { motion } from "framer-motion";
 export default function AppFooter() {
   const footerAnimation = {
     hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
       transition: {
         duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+      },
+    },
   };
 
   return (
-    <motion.footer 
+    <motion.footer
       initial="hidden"
       whileInView="visible"
       variants={footerAnimation}
