@@ -12,17 +12,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  AlertCircle,
   CheckCircle,
   CreditCard,
   Loader2,
   Sparkles,
+  Check,
+  X,
+  Crown,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { AppSidebar } from "@/components/app-sidebar";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/useUser";
 
 export default function BillingPage() {
@@ -30,29 +28,56 @@ export default function BillingPage() {
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Chat history state for sidebar
-  const [chatHistories, setChatHistories] = useState([]);
-  const [currentChatId, setCurrentChatId] = useState(null);
-
-  // Load chat histories from localStorage on mount
-  useEffect(() => {
-    const storedChats = localStorage.getItem("chatHistories");
-    if (storedChats) {
-      try {
-        setChatHistories(JSON.parse(storedChats));
-      } catch (error) {
-        console.error("Failed to parse stored chat histories:", error);
-      }
-    }
-  }, []);
-
-  // Load isPremium from localStorage on mount
   useEffect(() => {
     const storedPremium = localStorage.getItem("isPremium");
     if (storedPremium === "true") {
       setIsPremium(true);
     }
   }, []);
+
+  const plans = [
+    {
+      id: "free",
+      name: "Free Plan",
+      label: "Free Plan - Limited Access",
+      tagline: "Perfect for getting started",
+      price: "$0",
+      period: "forever",
+      icon: "💸",
+      features: [
+        { name: "2 prompts per day", included: true },
+        { name: "Basic idea enhancement", included: true },
+        { name: "Market validation", included: false },
+        { name: "MVP features", included: false },
+        { name: "Tech stack", included: false },
+        { name: "Monetization", included: false },
+        { name: "Landing page", included: false },
+        { name: "User personas", included: false },
+        { name: "PDF export", included: false },
+      ],
+    },
+    {
+      id: "premium",
+      name: "Premium Plan",
+      label: "Premium Plan - Full Access",
+      tagline: "Everything you need to succeed",
+      price: "$5",
+      period: "per month",
+      icon: "🌟",
+      badge: "MOST POPULAR",
+      features: [
+        { name: "5 prompts per day (max 20/week)", included: true },
+        { name: "All Free Plan features", included: true },
+        { name: "Advanced market validation", included: true },
+        { name: "Detailed MVP features breakdown", included: true },
+        { name: "Tech stack recommendations", included: true },
+        { name: "Monetization strategies", included: true },
+        { name: "Landing page guidance", included: true },
+        { name: "User personas", included: true },
+        { name: "PDF export", included: true },
+      ],
+    },
+  ];
 
   const containerAnimation = {
     hidden: { opacity: 0 },
@@ -96,13 +121,12 @@ export default function BillingPage() {
   const handleCancel = async () => {
     try {
       setIsLoading(true);
-      // Simulate API call - in production, this would cancel the subscription
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setIsPremium(false);
       localStorage.setItem("isPremium", "false");
       toast.success(
-        "Successfully cancelled Premium plan. Changes will take effect at the end of your billing period."
+        "Successfully cancelled Premium plan. You've been downgraded to the Free plan."
       );
     } catch (error) {
       console.error("Cancellation error:", error);
@@ -112,269 +136,276 @@ export default function BillingPage() {
     }
   };
 
-  // Chat history management functions
-  const handleChatSelect = (chatId) => {
-    // Navigate to main app page with selected chat
-    window.location.href = "/app";
-  };
-
-  const handleChatDelete = (chatId) => {
-    setChatHistories((prev) => prev.filter((chat) => chat.id !== chatId));
-    if (currentChatId === chatId) {
-      setCurrentChatId(null);
-    }
-    toast.success("Chat deleted successfully");
-  };
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <SidebarProvider>
-        <AppSidebar
-          chatHistories={chatHistories}
-          onChatSelect={handleChatSelect}
-          onChatDelete={handleChatDelete}
-          currentChatId={currentChatId}
-          user={user}
-        />
-        <SidebarInset className="flex flex-col">
-          <header className="shrink-0">
-            <Navbar />
-          </header>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerAnimation}
+      className="flex-1 p-4"
+    >
+      <div className="max-w-5xl mx-auto">
+        <motion.div
+          variants={itemAnimation}
+          className="flex justify-between items-center mb-8"
+        >
+          <div>
+            <h1 className="text-3xl font-bold">Billing</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage your subscription and usage
+            </p>
+          </div>
+        </motion.div>
 
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={containerAnimation}
-            className="flex-1 p-4"
-          >
-            <div className="max-w-5xl mx-auto">
-              <motion.div
-                variants={itemAnimation}
-                className="flex justify-between items-center mb-8"
-              >
-                <div>
-                  <h1 className="text-3xl font-bold">Billing</h1>
-                  <p className="text-muted-foreground mt-1">
-                    Manage your subscription and usage
-                  </p>
+        <div className="grid gap-6">
+          {/* Current Plan Status */}
+          <motion.div variants={itemAnimation}>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5" />
+                      Current Plan
+                    </CardTitle>
+                    <CardDescription>
+                      Your current subscription plan and status
+                    </CardDescription>
+                  </div>
+                  {isPremium ? (
+                    <Badge
+                      variant="outline"
+                      className="text-violet-600 border-violet-200"
+                    >
+                      <Crown className="h-3 w-3 mr-1" />
+                      Premium
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-gray-600">
+                      Free
+                    </Badge>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 bg-primary/5 rounded-full px-4 py-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">Billing Settings</span>
-                </div>
-              </motion.div>
-
-              <div className="grid md:grid-cols-2 gap-8">
-                {/* Free Plan */}
-                <motion.div variants={itemAnimation}>
-                  <Card
-                    className={`border-2 ${
-                      !isPremium ? "border-primary" : ""
-                    } transition-all hover:shadow-lg`}
-                  >
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle>Free Plan</CardTitle>
-                          <CardDescription>Limited features</CardDescription>
-                        </div>
-                        {!isPremium && (
-                          <Badge className="border-0">CURRENT PLAN</Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold mb-6">$0</div>
-                      <ul className="space-y-2">
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span>2 prompts per day</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span>Idea enhancement</span>
-                        </li>
-                        <li className="flex items-center gap-2 text-muted-foreground">
-                          <span className="h-4 w-4">×</span>
-                          <span>Market validation</span>
-                        </li>
-                        <li className="flex items-center gap-2 text-muted-foreground">
-                          <span className="h-4 w-4">×</span>
-                          <span>MVP feature breakdown</span>
-                        </li>
-                      </ul>
-
-                      {isPremium && (
-                        <Button
-                          variant="outline"
-                          className="w-full mt-6 border-2"
-                          onClick={handleCancel}
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing...
-                            </>
-                          ) : (
-                            "Switch to Free Plan"
-                          )}
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                {/* Premium Plan */}
-                <motion.div variants={itemAnimation}>
-                  <Card
-                    className={`border-2 ${
-                      isPremium ? "border-violet-500" : ""
-                    } transition-all hover:shadow-lg`}
-                  >
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle>Premium Plan</CardTitle>
-                          <CardDescription>
-                            Full access to all features
-                          </CardDescription>
-                        </div>
-                        {isPremium && (
-                          <Badge className="border-0">CURRENT PLAN</Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold mb-6">
-                        $5<span className="text-base font-normal">/month</span>
-                      </div>
-                      <ul className="space-y-2">
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span>5 prompts per day (max 20/week)</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span>All free features</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span>Market validation</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span>MVP features breakdown</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span>Tech stack suggestions</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span>PDF download</span>
-                        </li>
-                      </ul>
-
-                      {!isPremium ? (
-                        <Button
-                          className="w-full mt-6 cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={handleUpgrade}
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Upgrading...
-                            </>
-                          ) : (
-                            <>
-                              <CreditCard className="mr-2 h-4 w-4" />
-                              Upgrade Now
-                            </>
-                          )}
-                        </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900">
+                      {isPremium ? (
+                        <Crown className="h-5 w-5 text-violet-600" />
                       ) : (
-                        <Button
-                          variant="destructive"
-                          className="w-full mt-6"
-                          onClick={handleCancel}
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing...
-                            </>
-                          ) : (
-                            "Cancel Plan"
-                          )}
-                        </Button>
+                        <Sparkles className="h-5 w-5 text-gray-600" />
                       )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">
+                        {isPremium ? "Premium Plan" : "Free Plan"}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {isPremium
+                          ? "Everything you need to succeed"
+                          : "Perfect for getting started"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-semibold">
+                      {isPremium ? "$5" : "$0"}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {isPremium ? "per month" : "forever"}
+                    </div>
+                  </div>
+                </div>
 
-                {/* Usage Overview */}
-                <motion.div variants={itemAnimation} className="md:col-span-2">
-                  <Card className="border-2">
-                    <CardHeader>
-                      <CardTitle>Usage Overview</CardTitle>
-                      <CardDescription>
-                        Your current usage and limits
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="p-4 bg-muted/50 rounded-lg border-2 transition-all hover:border-violet-500/50 cursor-pointer">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium">Daily Prompts</span>
-                            <Badge variant="outline" className="bg-primary/5">
-                              {isPremium ? "5" : "2"} per day
-                            </Badge>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Resets daily at midnight UTC
-                          </div>
-                        </div>
+                {!isPremium && (
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Daily prompts used</span>
+                      <span className="font-medium">2 / 2</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div className="bg-primary h-2 rounded-full w-full"></div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Resets at midnight UTC
+                    </p>
+                  </div>
+                )}
 
-                        <div className="p-4 bg-muted/50 rounded-lg border-2 transition-all hover:border-violet-500/50 cursor-pointer">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium">Weekly Limit</span>
-                            <Badge variant="outline" className="bg-primary/5">
-                              {isPremium ? "20" : "10"} per week
-                            </Badge>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Resets weekly on Sunday at midnight UTC
-                          </div>
-                        </div>
-                      </div>
-
-                      {isPremium && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="mt-4 p-4 rounded-lg border-2 border-violet-500/20 cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                            <span>
-                              Premium features active - Full access enabled
-                            </span>
-                          </div>
-                        </motion.div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </div>
-            </div>
+                {isPremium && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 rounded-lg border-2 border-violet-500/20"
+                  >
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <span className="text-sm">
+                        Premium features active - Full access enabled
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+              </CardContent>
+            </Card>
           </motion.div>
 
-          <Footer />
-        </SidebarInset>
-      </SidebarProvider>
-    </div>
+          {/* Pricing Plans */}
+          <motion.div variants={itemAnimation}>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold mb-2">Choose Your Plan</h2>
+              <p className="text-muted-foreground">
+                Select the plan that best fits your startup journey
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {plans.map((plan) => (
+                <motion.div
+                  key={plan.id}
+                  variants={itemAnimation}
+                  className="relative"
+                >
+                  <Card
+                    className={`h-full ${
+                      plan.id === "premium" ? "border-violet-200 shadow-lg" : ""
+                    } ${
+                      (isPremium && plan.id === "premium") ||
+                      (!isPremium && plan.id === "free")
+                        ? "ring-2 ring-violet-500 ring-opacity-50"
+                        : ""
+                    }`}
+                  >
+                    {plan.badge && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <Badge className="bg-violet-600 hover:bg-violet-700 text-white px-3 py-1">
+                          {plan.badge}
+                        </Badge>
+                      </div>
+                    )}
+
+                    <CardHeader className="text-center pb-4">
+                      <div className="text-3xl mb-2">{plan.icon}</div>
+                      <CardTitle className="text-xl">{plan.name}</CardTitle>
+                      <CardDescription className="text-sm">
+                        {plan.tagline}
+                      </CardDescription>
+                      <div className="mt-4">
+                        <div className="text-3xl font-bold">
+                          {plan.price}
+                          <span className="text-lg font-normal text-muted-foreground ml-1">
+                            {plan.period}
+                          </span>
+                        </div>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-6">
+                      <div className="space-y-3">
+                        {plan.features.map((feature, index) => (
+                          <div key={index} className="flex items-center gap-3">
+                            {feature.included ? (
+                              <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            ) : (
+                              <X className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            )}
+                            <span
+                              className={`text-sm ${
+                                feature.included
+                                  ? "text-foreground"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              {feature.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pt-4">
+                        {plan.id === "premium" ? (
+                          !isPremium ? (
+                            <Button
+                              onClick={handleUpgrade}
+                              className="w-full bg-violet-600 hover:bg-violet-700"
+                              disabled={isLoading}
+                            >
+                              {isLoading ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <Crown className="mr-2 h-4 w-4" />
+                                  Upgrade to Premium
+                                </>
+                              )}
+                            </Button>
+                          ) : (
+                            <div className="space-y-3">
+                              <Button
+                                variant="outline"
+                                className="w-full border-green-200 text-green-700 cursor-default"
+                                disabled
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Current Plan
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={handleCancel}
+                                className="w-full"
+                                disabled={isLoading}
+                                size="sm"
+                              >
+                                {isLoading ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Processing...
+                                  </>
+                                ) : (
+                                  "Cancel Subscription"
+                                )}
+                              </Button>
+                            </div>
+                          )
+                        ) : // Free plan button
+                        isPremium ? (
+                          <Button
+                            variant="outline"
+                            onClick={handleCancel}
+                            className="w-full"
+                            disabled={isLoading}
+                          >
+                            {isLoading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              "Downgrade to Free"
+                            )}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            className="w-full border-green-200 text-green-700 cursor-default"
+                            disabled
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Current Plan
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </motion.div>
   );
 }

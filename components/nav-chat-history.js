@@ -20,17 +20,34 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MessageSquare, Trash2, Plus, Clock } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useImperativeHandle, forwardRef } from "react";
 import { Button } from "./ui/button";
+import { useChatHistory } from "@/hooks/useChatHistory";
 
-export function NavChatHistory({
-  chatHistories,
-  onChatSelect,
-  onChatDelete,
-  currentChatId,
-}) {
+export const NavChatHistory = forwardRef(function NavChatHistory(
+  { onChatSelect, onChatDelete },
+  ref
+) {
+  const {
+    chatHistories,
+    currentChatId,
+    handleChatSelect,
+    handleChatDelete,
+    saveChatHistory,
+    resetCurrentChat,
+  } = useChatHistory();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [chatToDelete, setChatToDelete] = useState(null);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      saveChatHistory,
+      resetCurrentChat,
+      currentChatId,
+    }),
+    [saveChatHistory, resetCurrentChat, currentChatId]
+  );
 
   const handleDeleteClick = (chatId, chatTitle) => {
     setChatToDelete({ id: chatId, title: chatTitle });
@@ -38,11 +55,15 @@ export function NavChatHistory({
   };
 
   const confirmDelete = () => {
-    if (chatToDelete && onChatDelete) {
-      onChatDelete(chatToDelete.id);
+    if (chatToDelete) {
+      handleChatDelete(chatToDelete.id, onChatDelete);
       setDeleteDialogOpen(false);
       setChatToDelete(null);
     }
+  };
+
+  const handleChatClick = (chatId) => {
+    handleChatSelect(chatId, onChatSelect);
   };
 
   return (
@@ -92,7 +113,7 @@ export function NavChatHistory({
                 >
                   <div
                     className="flex items-center w-full p-6 rounded-lg hover:bg-muted transition-colors cursor-pointer"
-                    onClick={() => onChatSelect(chat.id)}
+                    onClick={() => handleChatClick(chat.id)}
                   >
                     {/* Chat info */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -122,62 +143,58 @@ export function NavChatHistory({
                       </div>
                     </div>
 
-                    {/* Delete button (visible on hover) */}
-                    {onChatDelete && (
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0 ml-auto pl-4">
-                        <AlertDialog
-                          open={deleteDialogOpen}
-                          onOpenChange={setDeleteDialogOpen}
-                        >
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteClick(chat.id, chat.title);
-                              }}
-                              className="h-8 w-8 p-0 cursor-pointer hover:bg-destructive/10"
-                              title="Delete chat"
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0 ml-auto pl-4">
+                      <AlertDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                      >
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(chat.id, chat.title);
+                            }}
+                            className="h-8 w-8 p-0 cursor-pointer hover:bg-destructive/10"
+                            title="Delete chat"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="sm:max-w-md">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center gap-2">
+                              <Trash2 className="h-5 w-5 text-destructive" />
+                              Delete Conversation
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-left">
+                              Are you sure you want to delete{" "}
+                              <strong>
+                                "{chatToDelete?.title || "this chat"}"
+                              </strong>
+                              ?
+                              <br />
+                              <br />
+                              This action cannot be undone and all conversation
+                              history will be permanently removed.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="cursor-pointer hover:bg-muted">
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={confirmDelete}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
                             >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="sm:max-w-md">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="flex items-center gap-2">
-                                <Trash2 className="h-5 w-5 text-destructive" />
-                                Delete Conversation
-                              </AlertDialogTitle>
-                              <AlertDialogDescription className="text-left">
-                                Are you sure you want to delete{" "}
-                                <strong>
-                                  "{chatToDelete?.title || "this chat"}"
-                                </strong>
-                                ?
-                                <br />
-                                <br />
-                                This action cannot be undone and all
-                                conversation history will be permanently
-                                removed.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="cursor-pointer hover:bg-muted">
-                                Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={confirmDelete}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    )}
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -187,4 +204,4 @@ export function NavChatHistory({
       </SidebarGroup>
     </>
   );
-}
+});

@@ -477,18 +477,6 @@ export default function Home() {
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                   <span>Basic idea enhancement</span>
                 </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                  <span>Community support</span>
-                </li>
-                <li className="flex items-center gap-3 text-muted-foreground">
-                  <span className="h-5 w-5 flex-shrink-0">×</span>
-                  <span>Market validation</span>
-                </li>
-                <li className="flex items-center gap-3 text-muted-foreground">
-                  <span className="h-5 w-5 flex-shrink-0">×</span>
-                  <span>MVP features breakdown</span>
-                </li>
               </ul>
             </motion.div>
 

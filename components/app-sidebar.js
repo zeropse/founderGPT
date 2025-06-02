@@ -15,14 +15,31 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-export function AppSidebar({
-  chatHistories,
-  onChatSelect,
-  onChatDelete,
-  currentChatId,
-  user,
-  ...props
-}) {
+export const AppSidebar = React.forwardRef(function AppSidebar(
+  { onChatSelect, onChatDelete, user, ...props },
+  ref
+) {
+  const chatHistoryRef = React.useRef();
+
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      saveChatHistory: (idea, results) => {
+        if (chatHistoryRef.current) {
+          chatHistoryRef.current.saveChatHistory(idea, results);
+        }
+      },
+      resetCurrentChat: () => {
+        if (chatHistoryRef.current) {
+          chatHistoryRef.current.resetCurrentChat();
+        }
+      },
+      getCurrentChatId: () => {
+        return chatHistoryRef.current?.currentChatId || null;
+      },
+    }),
+    []
+  );
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -44,10 +61,9 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavChatHistory
-          chatHistories={chatHistories}
+          ref={chatHistoryRef}
           onChatSelect={onChatSelect}
           onChatDelete={onChatDelete}
-          currentChatId={currentChatId}
         />
       </SidebarContent>
       <SidebarFooter>
@@ -56,4 +72,4 @@ export function AppSidebar({
       <SidebarRail />
     </Sidebar>
   );
-}
+});
