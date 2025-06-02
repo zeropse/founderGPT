@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   CheckCircle,
   LightbulbIcon,
@@ -11,68 +12,92 @@ import {
   Code,
   Target,
   Users,
+  TrendingUp,
+  Zap,
+  Clock,
+  Award,
+  ChevronRight,
+  Play,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export default function Home() {
   const router = useRouter();
-  const { scrollYProgress } = useScroll();
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-
-  const scrollToFeatures = () => {
-    document.getElementById("features").scrollIntoView({ behavior: "smooth" });
+  const scrolltoHowItWorks = () => {
+    document
+      .getElementById("how-it-works")
+      ?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleGetStarted = () => {
     router.push("/get-started");
   };
 
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
+  // Animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 60 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.6,
-        ease: "easeOut",
+        duration: 0.8,
+        ease: [0.25, 0.25, 0.25, 0.75],
       },
     },
   };
 
-  const staggerChildren = {
+  const staggerContainer = {
+    hidden: { opacity: 0 },
     visible: {
+      opacity: 1,
       transition: {
         staggerChildren: 0.2,
+        delayChildren: 0.1,
       },
     },
   };
 
-  const scaleUp = {
-    hidden: {
-      scale: 0.95,
-      opacity: 0,
-      y: 20,
-    },
+  const scaleIn = {
+    hidden: { scale: 0.8, opacity: 0 },
     visible: {
       scale: 1,
       opacity: 1,
-      y: 0,
       transition: {
         type: "spring",
         stiffness: 100,
-        duration: 0.5,
+        damping: 15,
+        duration: 0.6,
       },
+    },
+  };
+
+  const slideInLeft = {
+    hidden: { x: -100, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
+  };
+
+  const slideInRight = {
+    hidden: { x: 100, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.8, ease: "easeOut" },
     },
   };
 
@@ -120,6 +145,37 @@ export default function Home() {
     },
   ];
 
+  const processSteps = [
+    {
+      step: "01",
+      title: "Describe Your Idea",
+      description:
+        "Share your concept, no matter how rough or incomplete it might be.",
+      icon: <LightbulbIcon className="h-8 w-8" />,
+    },
+    {
+      step: "02",
+      title: "AI Analysis",
+      description:
+        "Our AI analyzes market trends, competition, and validates your concept.",
+      icon: <Sparkles className="h-8 w-8" />,
+    },
+    {
+      step: "03",
+      title: "Get Insights",
+      description:
+        "Receive detailed reports with actionable recommendations and next steps.",
+      icon: <Target className="h-8 w-8" />,
+    },
+    {
+      step: "04",
+      title: "Build Your MVP",
+      description:
+        "Use our blueprint to build a focused, market-ready minimum viable product.",
+      icon: <Code className="h-8 w-8" />,
+    },
+  ];
+
   const faqs = [
     {
       question: "What is FoundrGPT?",
@@ -157,77 +213,127 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
 
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-violet-500/10 to-indigo-500/10 rounded-full blur-3xl"
+          animate={{
+            x: mousePosition.x * 0.02,
+            y: mousePosition.y * 0.02,
+          }}
+          transition={{ type: "spring", stiffness: 50, damping: 20 }}
+        />
+        <motion.div
+          className="absolute top-3/4 right-1/4 w-96 h-96 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-full blur-3xl"
+          animate={{
+            x: mousePosition.x * -0.02,
+            y: mousePosition.y * -0.02,
+          }}
+          transition={{ type: "spring", stiffness: 50, damping: 20 }}
+        />
+      </div>
+
+      {/* Hero Section */}
       <motion.section
         initial="hidden"
         animate="visible"
-        variants={staggerChildren}
-        className="relative py-20 md:py-32 overflow-hidden"
+        variants={staggerContainer}
+        className="relative py-30 md:py-40 overflow-hidden"
       >
-        <motion.div className="absolute inset-0" style={{ y: backgroundY }} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-3xl mx-auto">
+          <div className="text-center max-w-4xl mx-auto">
             <motion.div
-              variants={fadeIn}
-              className="inline-flex items-center gap-2 bg-primary/5 rounded-full px-4 py-2 mb-6"
+              variants={fadeInUp}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border border-violet-500/20 rounded-full px-6 py-3 mb-8"
             >
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">
-                AI-Powered Idea Validation
-              </span>
+              <Sparkles className="h-5 w-5 text-violet-500" />
+              <Badge className="text-sm font-medium bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent cursor-pointer">
+                AI-Powered Idea Validation Platform
+              </Badge>
             </motion.div>
+
             <motion.h1
-              variants={fadeIn}
-              className="text-4xl md:text-6xl font-bold tracking-tight mb-6"
+              variants={fadeInUp}
+              className="text-5xl md:text-7xl font-bold tracking-tight mb-8 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent"
             >
-              Transform Your Idea Into A Validated MVP
+              Transform Your Idea Into A{" "}
+              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                Validated MVP
+              </span>
             </motion.h1>
+
             <motion.p
-              variants={fadeIn}
-              className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
+              variants={fadeInUp}
+              className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed"
             >
               FoundrGPT helps developers, startups, and indie hackers refine raw
-              ideas into actionable MVPs using industry-aligned standards.
+              ideas into actionable MVPs using industry-aligned standards and
+              AI-powered insights.
             </motion.p>
+
             <motion.div
-              variants={fadeIn}
-              className="flex flex-col sm:flex-row justify-center gap-4"
+              variants={fadeInUp}
+              className="flex flex-col sm:flex-row justify-center gap-6 mb-12"
             >
               <Button
                 size="lg"
-                className="gap-2 hover:opacity-90 transition-opacity cursor-pointer"
+                className="gap-3 px-8 py-6 dark:text-white text-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group"
                 onClick={handleGetStarted}
               >
-                Get Started <ArrowRight className="h-4 w-4" />
+                Get Started Free
+                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="gap-2 border-2 cursor-pointer"
-                onClick={scrollToFeatures}
+                className="gap-3 px-8 py-6 text-lg border-2 hover:bg-muted/50 cursor-pointer group"
+                onClick={scrolltoHowItWorks}
               >
+                <Play className="h-5 w-5" />
                 See How It Works
               </Button>
+            </motion.div>
+
+            <motion.div
+              variants={fadeInUp}
+              className="flex items-center justify-center gap-8 text-sm text-muted-foreground"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>2 free prompts daily</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Instant results</span>
+              </div>
             </motion.div>
           </div>
         </div>
       </motion.section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-muted/30">
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
-            variants={fadeIn}
+            variants={fadeInUp}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              How FoundrGPT Works
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              How It{" "}
+              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                Works
+              </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              We use AI to turn your raw concept into a fully validated idea
-              with actionable insights
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Our AI-powered process transforms your raw idea into a validated,
+              actionable business plan in minutes
             </p>
           </motion.div>
 
@@ -235,31 +341,88 @@ export default function Home() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
-            variants={staggerChildren}
+            variants={staggerContainer}
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+          >
+            {processSteps.map((step, index) => (
+              <motion.div
+                key={index}
+                variants={fadeInUp}
+                className="relative group"
+              >
+                <Card className="h-full border-2 hover:border-violet-200 dark:hover:border-violet-800 transition-all duration-300 hover:shadow-lg">
+                  <CardContent className="p-8 text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <div className="text-white">{step.icon}</div>
+                    </div>
+                    <div className="text-sm font-bold text-violet-600 mb-2">
+                      {step.step}
+                    </div>
+                    <h3 className="text-xl font-bold mb-4">{step.title}</h3>
+                    <p className="text-muted-foreground">{step.description}</p>
+                  </CardContent>
+                </Card>
+                {index < processSteps.length - 1 && (
+                  <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
+                    <ChevronRight className="h-8 w-8 text-violet-300" />
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Powerful{" "}
+              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                Features
+              </span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Everything you need to validate, refine, and launch your next big
+              idea with confidence
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
             className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
           >
             {features.map((feature, i) => (
               <motion.div
                 key={i}
-                variants={scaleUp}
-                className="group bg-card rounded-xl p-6 shadow-lg border transition-all hover:shadow-xl hover:-translate-y-1 duration-300 cursor-pointer"
-                whileHover={{ scale: 1.02 }}
+                variants={scaleIn}
+                whileHover={{ y: -8, scale: 1.02 }}
+                className="group bg-card rounded-2xl p-8 shadow-lg border-2 hover:border-violet-200 dark:hover:border-violet-800 transition-all duration-300 hover:shadow-xl cursor-pointer"
               >
-                <div className="mb-4 transform transition-transform duration-300 group-hover:scale-110">
+                <div className="mb-6 transform transition-transform duration-300 group-hover:scale-110">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                <h3 className="text-xl font-bold mb-3 flex items-center gap-3">
                   {feature.title}
                   {feature.premium && (
-                    <Badge
-                      variant="secondary\"
-                      className="dark:bg-violet-500/10 dark:text-violet-500 dark:border-violet-500/20"
-                    >
+                    <Badge className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white border-0">
                       Premium
                     </Badge>
                   )}
                 </h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <p className="text-muted-foreground leading-relaxed">
+                  {feature.description}
+                </p>
               </motion.div>
             ))}
           </motion.div>
@@ -267,20 +430,23 @@ export default function Home() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 relative overflow-hidden">
-        <motion.div className="absolute inset-0" style={{ y: backgroundY }} />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <section className="py-20 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950/20 dark:to-indigo-950/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
-            variants={fadeIn}
+            variants={fadeInUp}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Simple, Transparent Pricing
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Simple,{" "}
+              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                Transparent
+              </span>{" "}
+              Pricing
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Start with our free plan or upgrade for more features and higher
               usage limits
             </p>
@@ -290,32 +456,41 @@ export default function Home() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
-            variants={staggerChildren}
-            className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto"
+            variants={staggerContainer}
+            className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto"
           >
             {/* Free Plan */}
             <motion.div
-              variants={scaleUp}
-              whileHover={{ y: -5 }}
-              className="bg-card rounded-xl p-8 shadow-lg border transition-all hover:shadow-xl flex flex-col"
+              variants={slideInLeft}
+              whileHover={{ y: -8, scale: 1.02 }}
+              className="bg-card rounded-2xl p-8 shadow-lg border-2 transition-all duration-300 hover:shadow-xl flex flex-col"
             >
-              <h3 className="text-2xl font-bold mb-2">Free Plan</h3>
-              <div className="text-4xl font-bold mb-6">$0</div>
-              <ul className="space-y-3 mb-8 flex-grow">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold mb-2">Free Plan</h3>
+                <div className="text-5xl font-bold mb-2">$0</div>
+                <p className="text-muted-foreground">
+                  Perfect for getting started
+                </p>
+              </div>
+              <ul className="space-y-4 mb-8 flex-grow">
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                   <span>2 prompts per day</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Idea enhancement</span>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  <span>Basic idea enhancement</span>
                 </li>
-                <li className="flex items-center gap-2 text-muted-foreground">
-                  <span className="h-5 w-5">×</span>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  <span>Community support</span>
+                </li>
+                <li className="flex items-center gap-3 text-muted-foreground">
+                  <span className="h-5 w-5 flex-shrink-0">×</span>
                   <span>Market validation</span>
                 </li>
-                <li className="flex items-center gap-2 text-muted-foreground">
-                  <span className="h-5 w-5">×</span>
+                <li className="flex items-center gap-3 text-muted-foreground">
+                  <span className="h-5 w-5 flex-shrink-0">×</span>
                   <span>MVP features breakdown</span>
                 </li>
               </ul>
@@ -323,59 +498,67 @@ export default function Home() {
                 variant="outline"
                 size="lg"
                 onClick={handleGetStarted}
-                className="border-2 cursor-pointer"
+                className="border-2 cursor-pointer hover:bg-muted/50"
               >
-                Get Started
+                Get Started Free
               </Button>
             </motion.div>
 
             {/* Premium Plan */}
             <motion.div
-              variants={scaleUp}
-              whileHover={{ y: -5 }}
-              className="bg-card rounded-xl p-8 shadow-xl border-2 border-violet-500 relative flex flex-col"
+              variants={slideInRight}
+              whileHover={{ y: -8, scale: 1.02 }}
+              className="bg-card rounded-2xl p-8 shadow-xl border-2 border-violet-500 relative flex flex-col"
             >
-              <div className="absolute -top-4 right-4">
-                <Badge className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white border-0 px-3 py-1">
-                  RECOMMENDED
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-gradient-to-r from-violet-500 to-indigo-500 text-white border-0 px-4 py-2 text-sm">
+                  MOST POPULAR
                 </Badge>
               </div>
-              <h3 className="text-2xl font-bold mb-2">Premium Plan</h3>
-              <div className="text-4xl font-bold mb-6">
-                $5<span className="text-lg font-normal">/month</span>
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold mb-2">Premium Plan</h3>
+                <div className="text-5xl font-bold mb-2">
+                  $5
+                  <span className="text-xl font-normal text-muted-foreground">
+                    /month
+                  </span>
+                </div>
+                <p className="text-muted-foreground">
+                  Everything you need to succeed
+                </p>
               </div>
-              <ul className="space-y-3 mb-8 flex-grow">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
+              <ul className="space-y-4 mb-8 flex-grow">
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                   <span>5 prompts per day (max 25/week)</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>All free features</span>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  <span>All free features included</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Market validation</span>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  <span>Advanced market validation</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>MVP features breakdown</span>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  <span>Detailed MVP features breakdown</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Tech stack suggestions</span>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  <span>Tech stack recommendations</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>PDF download</span>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  <span>PDF export & priority support</span>
                 </li>
               </ul>
               <Button
                 size="lg"
                 onClick={handleGetStarted}
-                className="bg-gradient-to-r from-violet-500 to-indigo-500 hover:opacity-90 transition-opacity cursor-pointer"
+                className="bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 transition-all duration-300 cursor-pointer shadow-lg"
               >
-                Get Started
+                Get Started Premium
               </Button>
             </motion.div>
           </motion.div>
@@ -383,17 +566,20 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
-            variants={fadeIn}
+            variants={fadeInUp}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-">
-              Frequently Asked Questions
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Frequently Asked{" "}
+              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                Questions
+              </span>
             </h2>
             <p className="text-xl text-muted-foreground">
               Everything you need to know about FoundrGPT
@@ -404,21 +590,64 @@ export default function Home() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            variants={fadeIn}
-            className="bg-card rounded-xl shadow-lg border p-6"
+            variants={fadeInUp}
+            className="bg-card rounded-2xl shadow-lg border-2 p-8"
           >
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`}>
-                  <AccordionTrigger className="text-left cursor-pointer">
+                <AccordionItem
+                  key={index}
+                  value={`item-${index}`}
+                  className="border-b border-muted"
+                >
+                  <AccordionTrigger className="text-left cursor-pointer hover:text-violet-600 transition-colors py-6">
                     {faq.question}
                   </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
+                  <AccordionContent className="text-muted-foreground leading-relaxed pb-6">
                     {faq.answer}
                   </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+          >
+            <motion.h2
+              variants={fadeInUp}
+              className="text-4xl md:text-5xl font-bold mb-6"
+            >
+              Ready to Validate Your Next Big Idea?
+            </motion.h2>
+            <motion.p
+              variants={fadeInUp}
+              className="text-xl mb-8 opacity-90 max-w-2xl mx-auto"
+            >
+              Join thousands of successful founders who've turned their ideas
+              into thriving businesses with FoundrGPT.
+            </motion.p>
+            <motion.div
+              variants={fadeInUp}
+              className="flex flex-col sm:flex-row justify-center gap-4"
+            >
+              <Button
+                size="lg"
+                className="gap-3 px-8 py-6 text-lg dark:text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group"
+                onClick={handleGetStarted}
+              >
+                Get Started Free
+                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </motion.div>
           </motion.div>
         </div>
       </section>

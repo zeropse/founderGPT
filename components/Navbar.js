@@ -40,7 +40,10 @@ export default function Navbar() {
           </motion.div>
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            <Button className="hover:opacity-70 transition-opacity" asChild>
+            <Button
+              className="hover:opacity-70 dark:text-white transition-opacity bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg hover:shadow-xl duration-300 cursor-pointer"
+              asChild
+            >
               <Link href="/get-started">Get Started</Link>
             </Button>
           </div>
