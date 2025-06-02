@@ -522,7 +522,7 @@ export default function Home() {
               <ul className="space-y-4 mb-8 flex-grow">
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                  <span>5 prompts per day (max 25/week)</span>
+                  <span>5 prompts per day (max 20/week)</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />

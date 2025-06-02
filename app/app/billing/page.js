@@ -50,7 +50,6 @@ export default function BillingPage() {
   const handleUpgrade = async () => {
     try {
       setIsLoading(true);
-      // Simulate API call - in production, this would be a real payment flow
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setIsPremium(true);
@@ -186,7 +185,7 @@ export default function BillingPage() {
               <ul className="space-y-2">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>5 prompts per day (max 25/week)</span>
+                  <span>5 prompts per day (max 20/week)</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
@@ -274,7 +273,7 @@ export default function BillingPage() {
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-medium">Weekly Limit</span>
                     <Badge variant="outline" className="bg-primary/5">
-                      {isPremium ? "25" : "14"} per week
+                      {isPremium ? "20" : "10"} per week
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
