@@ -10,11 +10,16 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { handleDownloadPDF as downloadPDF } from "@/lib/pdfDownloader";
 import { useUser } from "@/hooks/useUser";
+import { useUserSync } from "@/hooks/useUserSync";
 import { useSidebarContext } from "@/hooks/useSidebarContext";
 
 export default function AppPage() {
   const router = useRouter();
   const { user } = useUser();
+
+  // Sync user data with database when accessing the app
+  useUserSync();
+
   const {
     saveChatHistory,
     resetCurrentChat,
