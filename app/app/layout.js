@@ -1,12 +1,12 @@
-import AppNavbar from "@/components/AppNavbar";
-import AppFooter from "@/components/AppFooter";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default function AppLayout({ children }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <AppNavbar />
+      <Navbar />
       <main className="flex-1">{children}</main>
-      <AppFooter />
+      <Footer />
     </div>
   );
 }

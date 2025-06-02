@@ -457,7 +457,7 @@ export default function Home() {
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto"
+            className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto cursor-pointer"
           >
             {/* Free Plan */}
             <motion.div
@@ -494,14 +494,6 @@ export default function Home() {
                   <span>MVP features breakdown</span>
                 </li>
               </ul>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleGetStarted}
-                className="border-2 cursor-pointer hover:bg-muted/50"
-              >
-                Get Started Free
-              </Button>
             </motion.div>
 
             {/* Premium Plan */}
@@ -553,13 +545,6 @@ export default function Home() {
                   <span>PDF export & priority support</span>
                 </li>
               </ul>
-              <Button
-                size="lg"
-                onClick={handleGetStarted}
-                className="bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 transition-all duration-300 cursor-pointer shadow-lg"
-              >
-                Get Started Premium
-              </Button>
             </motion.div>
           </motion.div>
         </div>

@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Laptop } from "lucide-react";
 import { motion } from "framer-motion";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const isAppRoute = pathname.startsWith("/app");
+
   const navAnimation = {
     hidden: { y: -20, opacity: 0 },
     visible: {
@@ -38,14 +43,30 @@ export default function Navbar() {
               <span className="text-xl font-bold">FoundrGPT</span>
             </Link>
           </motion.div>
+
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            <Button
-              className="hover:opacity-70 dark:text-white transition-opacity bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg hover:shadow-xl duration-300 cursor-pointer"
-              asChild
-            >
-              <Link href="/get-started">Get Started</Link>
-            </Button>
+
+            <SignedOut>
+              <Button
+                className="hover:opacity-70 dark:text-white transition-opacity bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg hover:shadow-xl duration-300 cursor-pointer"
+                asChild
+              >
+                <Link href="/get-started">Get Started</Link>
+              </Button>
+            </SignedOut>
+
+            <SignedIn>
+              {!isAppRoute && (
+                <Button
+                  className="hover:opacity-70 dark:text-white transition-opacity bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg hover:shadow-xl duration-300 cursor-pointer"
+                  asChild
+                >
+                  <Link href="/app">Continue to App</Link>
+                </Button>
+              )}
+              {isAppRoute && <UserButton />}
+            </SignedIn>
           </div>
         </div>
       </div>

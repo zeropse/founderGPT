@@ -68,7 +68,7 @@ export default function GetStartedPage() {
               asChild
             >
               <Link href="/app">
-                Sign in to FoundrGPT
+                Use FoundrGPT
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
