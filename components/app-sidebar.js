@@ -26,8 +26,9 @@ export const AppSidebar = React.forwardRef(function AppSidebar(
     () => ({
       saveChatHistory: (idea, results) => {
         if (chatHistoryRef.current) {
-          chatHistoryRef.current.saveChatHistory(idea, results);
+          return chatHistoryRef.current.saveChatHistory(idea, results);
         }
+        return null;
       },
       resetCurrentChat: () => {
         if (chatHistoryRef.current) {

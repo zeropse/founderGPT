@@ -35,8 +35,9 @@ export function SidebarProvider({ children }) {
 
   const saveChatHistory = useCallback((idea, results) => {
     if (sidebarRef.current && sidebarRef.current.saveChatHistory) {
-      sidebarRef.current.saveChatHistory(idea, results);
+      return sidebarRef.current.saveChatHistory(idea, results);
     }
+    return null;
   }, []);
 
   const resetCurrentChat = useCallback(() => {

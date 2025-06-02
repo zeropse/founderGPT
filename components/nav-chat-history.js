@@ -21,6 +21,7 @@ import {
 import { MessageSquare, Trash2, Plus, Clock } from "lucide-react";
 import Link from "next/link";
 import { useState, useImperativeHandle, forwardRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { useChatHistory } from "@/hooks/useChatHistory";
 
@@ -28,6 +29,7 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
   { onChatSelect, onChatDelete },
   ref
 ) {
+  const router = useRouter();
   const {
     chatHistories,
     currentChatId,
@@ -42,7 +44,9 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
   useImperativeHandle(
     ref,
     () => ({
-      saveChatHistory,
+      saveChatHistory: (idea, results) => {
+        return saveChatHistory(idea, results);
+      },
       resetCurrentChat,
       currentChatId,
     }),
@@ -63,7 +67,7 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
   };
 
   const handleChatClick = (chatId) => {
-    handleChatSelect(chatId, onChatSelect);
+    router.push(`/app/c/${chatId}`);
   };
 
   return (

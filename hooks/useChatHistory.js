@@ -1,11 +1,18 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
+function generateUUID() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export function useChatHistory() {
   const [chatHistories, setChatHistories] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
 
-  // Load chat histories from localStorage on mount
   useEffect(() => {
     const storedChats = localStorage.getItem("chatHistories");
     if (storedChats) {
@@ -17,7 +24,6 @@ export function useChatHistory() {
     }
   }, []);
 
-  // Save chat histories to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("chatHistories", JSON.stringify(chatHistories));
   }, [chatHistories]);
@@ -45,7 +51,7 @@ export function useChatHistory() {
   const saveChatHistory = (idea, results) => {
     if (results && idea && !currentChatId) {
       const newChat = {
-        id: Date.now().toString(),
+        id: generateUUID(),
         title: idea.slice(0, 50) + (idea.length > 50 ? "..." : ""),
         idea,
         results,
@@ -53,7 +59,9 @@ export function useChatHistory() {
       };
       setChatHistories((prev) => [newChat, ...prev.slice(0, 19)]);
       setCurrentChatId(newChat.id);
+      return newChat.id;
     }
+    return null;
   };
 
   const resetCurrentChat = () => {

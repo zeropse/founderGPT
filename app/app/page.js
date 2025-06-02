@@ -167,12 +167,16 @@ export default function AppPage() {
       setPromptsRemaining(newCount);
       localStorage.setItem("promptsRemaining", newCount.toString());
 
-      // Save chat history
+      let newChatId = null;
       if (saveChatHistory) {
-        saveChatHistory(idea.trim(), data);
+        newChatId = saveChatHistory(idea.trim(), data);
       }
 
       toast.success("Idea validated successfully!");
+
+      if (newChatId) {
+        router.push(`/app/c/${newChatId}`);
+      }
     } catch (error) {
       console.error("Validation error:", error);
       toast.error(
