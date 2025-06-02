@@ -4,6 +4,7 @@ const isProtectedRoute = createRouteMatcher([
   "/app",
   "/api/validate-idea(.*)?",
   "/api/user/sync(.*)?",
+  "/api/billing/plans(.*)?",
   "/app/billing",
   "app/c/:id",
 ]);

@@ -27,57 +27,44 @@ export default function BillingPage() {
   const { user } = useUser();
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [plans, setPlans] = useState([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true);
 
   useEffect(() => {
     const storedPremium = localStorage.getItem("isPremium");
     if (storedPremium === "true") {
       setIsPremium(true);
     }
-  }, []);
 
-  const plans = [
-    {
-      id: "free",
-      name: "Free Plan",
-      label: "Free Plan - Limited Access",
-      tagline: "Perfect for getting started",
-      price: "$0",
-      period: "forever",
-      icon: "💸",
-      features: [
-        { name: "2 prompts per day", included: true },
-        { name: "Basic idea enhancement", included: true },
-        { name: "Market validation", included: false },
-        { name: "MVP features", included: false },
-        { name: "Tech stack", included: false },
-        { name: "Monetization", included: false },
-        { name: "Landing page", included: false },
-        { name: "User personas", included: false },
-        { name: "PDF export", included: false },
-      ],
-    },
-    {
-      id: "premium",
-      name: "Premium Plan",
-      label: "Premium Plan - Full Access",
-      tagline: "Everything you need to succeed",
-      price: "$5",
-      period: "per month",
-      icon: "🌟",
-      badge: "MOST POPULAR",
-      features: [
-        { name: "5 prompts per day (max 20/week)", included: true },
-        { name: "All Free Plan features", included: true },
-        { name: "Advanced market validation", included: true },
-        { name: "Detailed MVP features breakdown", included: true },
-        { name: "Tech stack recommendations", included: true },
-        { name: "Monetization strategies", included: true },
-        { name: "Landing page guidance", included: true },
-        { name: "User personas", included: true },
-        { name: "PDF export", included: true },
-      ],
-    },
-  ];
+    // Fetch plans from the API
+    const fetchPlans = async () => {
+      try {
+        setIsLoadingPlans(true);
+        const response = await fetch("/api/billing/plans");
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.plans) {
+            setPlans(data.plans);
+          } else {
+            console.error("Failed to fetch plans:", data.error);
+            toast.error("Failed to load subscription plans");
+          }
+        } else {
+          console.error("Failed to fetch plans:", response.statusText);
+          toast.error("Failed to load subscription plans");
+        }
+      } catch (error) {
+        console.error("Error fetching plans:", error);
+        toast.error("Failed to load subscription plans");
+      } finally {
+        setIsLoadingPlans(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
+  // Removed hardcoded plans array. Plans are now dynamically loaded from the API.
 
   const containerAnimation = {
     hidden: { opacity: 0 },
