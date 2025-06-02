@@ -1,19 +1,25 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/useUser";
+import {
+  SidebarProvider as CustomSidebarProvider,
+  useSidebarContext,
+} from "@/hooks/useSidebarContext";
 
-export default function AppLayout({ children }) {
+function AppLayoutContent({ children }) {
   const { user } = useUser();
   const sidebarRef = useRef();
+  const { setSidebarRef, handleChatSelect, handleChatDelete } =
+    useSidebarContext();
 
-  const handleChatSelect = (selectedChat) => {};
-
-  const handleChatDelete = () => {};
+  useEffect(() => {
+    setSidebarRef(sidebarRef);
+  }, [setSidebarRef]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -35,5 +41,13 @@ export default function AppLayout({ children }) {
         </SidebarInset>
       </SidebarProvider>
     </div>
+  );
+}
+
+export default function AppLayout({ children }) {
+  return (
+    <CustomSidebarProvider>
+      <AppLayoutContent>{children}</AppLayoutContent>
+    </CustomSidebarProvider>
   );
 }

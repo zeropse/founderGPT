@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import IdeaForm from "@/components/app/IdeaForm";
 import PlanCard from "@/components/app/PlanCard";
@@ -10,10 +10,17 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { handleDownloadPDF as downloadPDF } from "@/lib/pdfDownloader";
 import { useUser } from "@/hooks/useUser";
+import { useSidebarContext } from "@/hooks/useSidebarContext";
 
 export default function AppPage() {
   const router = useRouter();
   const { user } = useUser();
+  const {
+    saveChatHistory,
+    resetCurrentChat,
+    setChatSelectHandler,
+    setChatDeleteHandler,
+  } = useSidebarContext();
   const [idea, setIdea] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
@@ -22,6 +29,37 @@ export default function AppPage() {
   const [activeTab, setActiveTab] = useState("validation");
   const [retryTimeout, setRetryTimeout] = useState(null);
   const [enhancementStep, setEnhancementStep] = useState(0);
+
+  // Define chat handlers with useCallback to prevent infinite re-renders
+  const handleChatSelect = useCallback((selectedChat) => {
+    if (selectedChat) {
+      setIdea(selectedChat.idea);
+      setResults(selectedChat.results);
+      setActiveTab("validation");
+      toast.success("Chat loaded successfully");
+    }
+  }, []);
+
+  const handleChatDelete = useCallback(() => {
+    // Reset form if the deleted chat was currently active
+    setIdea("");
+    setResults(null);
+    setActiveTab("validation");
+    if (resetCurrentChat) {
+      resetCurrentChat();
+    }
+  }, [resetCurrentChat]);
+
+  // Set up chat handlers
+  useEffect(() => {
+    setChatSelectHandler(handleChatSelect);
+    setChatDeleteHandler(handleChatDelete);
+  }, [
+    setChatSelectHandler,
+    setChatDeleteHandler,
+    handleChatSelect,
+    handleChatDelete,
+  ]);
 
   // Load isPremium from localStorage on mount
   useEffect(() => {
@@ -129,6 +167,11 @@ export default function AppPage() {
       setPromptsRemaining(newCount);
       localStorage.setItem("promptsRemaining", newCount.toString());
 
+      // Save chat history
+      if (saveChatHistory) {
+        saveChatHistory(idea.trim(), data);
+      }
+
       toast.success("Idea validated successfully!");
     } catch (error) {
       console.error("Validation error:", error);
@@ -153,14 +196,14 @@ export default function AppPage() {
     downloadPDF(results);
   };
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setIdea("");
     setResults(null);
     setActiveTab("validation");
-    if (sidebarRef.current) {
-      sidebarRef.current.resetCurrentChat();
+    if (resetCurrentChat) {
+      resetCurrentChat();
     }
-  };
+  }, [resetCurrentChat]);
 
   const containerAnimation = {
     hidden: { opacity: 0 },
