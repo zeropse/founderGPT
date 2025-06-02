@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Laptop } from "lucide-react";
 import { motion } from "framer-motion";
-import { ClerkProvider, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -25,53 +25,49 @@ export default function Navbar() {
   };
 
   return (
-    <ClerkProvider>
-      <motion.nav
-        initial="hidden"
-        animate="visible"
-        variants={navAnimation}
-        className="border-b sticky top-0 z-50 bg-background/80 backdrop-blur-sm"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <motion.div
-              className="flex items-center"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+    <motion.nav
+      initial="hidden"
+      animate="visible"
+      variants={navAnimation}
+      className="border-b sticky top-0 z-50 bg-background/80 backdrop-blur-sm"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link href="/" className="flex items-center group">
                 <Laptop className="h-8 w-8 text-primary mr-2" />
-                <span className="text-xl font-bold">FoundrGPT</span>
+                <span className="text-xl font-bold">FounderGPT</span>
               </Link>
             </motion.div>
+          </div>
 
-            <div className="flex items-center space-x-4">
-              <ThemeToggle />
+          <div className="flex items-center space-x-4">
+            <ThemeToggle />
 
-              <SignedOut>
+            <SignedOut>
+              <Button
+                className="hover:opacity-70 dark:text-white transition-opacity bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg hover:shadow-xl duration-300 cursor-pointer"
+                asChild
+              >
+                <Link href="/get-started">Get Started</Link>
+              </Button>
+            </SignedOut>
+
+            <SignedIn>
+              {!isAppRoute && (
                 <Button
                   className="hover:opacity-70 dark:text-white transition-opacity bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg hover:shadow-xl duration-300 cursor-pointer"
                   asChild
                 >
-                  <Link href="/get-started">Get Started</Link>
+                  <Link href="/app">Continue to App</Link>
                 </Button>
-              </SignedOut>
-
-              <SignedIn>
-                {!isAppRoute && (
-                  <Button
-                    className="hover:opacity-70 dark:text-white transition-opacity bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg hover:shadow-xl duration-300 cursor-pointer"
-                    asChild
-                  >
-                    <Link href="/app">Continue to App</Link>
-                  </Button>
-                )}
-                {isAppRoute && <UserButton />}
-              </SignedIn>
-            </div>
+              )}
+              {isAppRoute && <UserButton />}
+            </SignedIn>
           </div>
         </div>
-      </motion.nav>
-    </ClerkProvider>
+      </div>
+    </motion.nav>
   );
 }

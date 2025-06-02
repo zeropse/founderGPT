@@ -30,6 +30,6 @@
     "hooks/use-toast.js",
     "lib/utils.js",
     "components/app/ResultsDisplay.js"
-  ],
+, "components/nav-projects.js", "components/nav-user.js", "components/app-sidebar.js", "app/dashboard/page.js"  ],
   "exclude": ["node_modules"]
 }

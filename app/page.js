@@ -12,10 +12,6 @@ import {
   Code,
   Target,
   Users,
-  TrendingUp,
-  Zap,
-  Clock,
-  Award,
   ChevronRight,
   Play,
 } from "lucide-react";
