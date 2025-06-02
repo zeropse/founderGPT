@@ -32,6 +32,7 @@ export default function BillingPage() {
     promptsRemaining,
     dailyPromptsLimit,
     promptsResetDate,
+    refreshUserData,
   } = useUserSync();
   const [isLoading, setIsLoading] = useState(false);
   const [plans, setPlans] = useState([]);
@@ -112,7 +113,7 @@ export default function BillingPage() {
         localStorage.setItem("isPremium", "true");
         toast.success("Successfully upgraded to Premium!");
 
-        window.location.reload();
+        await refreshUserData();
       } else {
         const error = await response.json();
         throw new Error(error.error || "Failed to upgrade");
@@ -145,7 +146,7 @@ export default function BillingPage() {
           "Successfully cancelled Premium plan. You've been downgraded to the Free plan."
         );
 
-        window.location.reload();
+        await refreshUserData();
       } else {
         const error = await response.json();
         throw new Error(error.error || "Failed to downgrade");
@@ -365,7 +366,7 @@ export default function BillingPage() {
                           !currentPlanState ? (
                             <Button
                               onClick={handleUpgrade}
-                              className="w-full bg-violet-600 hover:bg-violet-700"
+                              className="w-full bg-violet-600 hover:bg-violet-700 cursor-pointer"
                               disabled={isLoading}
                             >
                               {isLoading ? (
@@ -383,8 +384,8 @@ export default function BillingPage() {
                           ) : (
                             <div className="space-y-3">
                               <Button
-                                variant="outline"
-                                className="w-full border-green-200 text-green-700 cursor-default"
+                                variant="secondary"
+                                className="w-full border-green-200 text-green-700"
                                 disabled
                               >
                                 <CheckCircle className="mr-2 h-4 w-4" />
@@ -393,7 +394,7 @@ export default function BillingPage() {
                               <Button
                                 variant="destructive"
                                 onClick={handleCancel}
-                                className="w-full"
+                                className="w-full cursor-pointer"
                                 disabled={isLoading}
                                 size="sm"
                               >
@@ -413,7 +414,7 @@ export default function BillingPage() {
                           <Button
                             variant="outline"
                             onClick={handleCancel}
-                            className="w-full"
+                            className="w-full cursor-pointer"
                             disabled={isLoading}
                           >
                             {isLoading ? (

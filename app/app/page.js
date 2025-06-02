@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { handleDownloadPDF as downloadPDF } from "@/lib/pdfDownloader";
 import { useUser } from "@/hooks/useUser";
 import { useUserSync } from "@/hooks/useUserSync";
+import { useUserActions } from "@/hooks/useUserActions";
 import { useSidebarContext } from "@/hooks/useSidebarContext";
 
 export default function AppPage() {
@@ -24,6 +25,8 @@ export default function AppPage() {
     promptsRemaining,
     dailyPromptsLimit,
     promptsResetDate,
+    isInitialized,
+    refreshUserData,
   } = useUserSync();
 
   const {
@@ -32,6 +35,8 @@ export default function AppPage() {
     setChatSelectHandler,
     setChatDeleteHandler,
   } = useSidebarContext();
+
+  const { validateIdea } = useUserActions();
   const [idea, setIdea] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
@@ -100,37 +105,12 @@ export default function AppPage() {
     setEnhancementStep(0);
 
     try {
-      const response = await fetch("/api/validate-idea", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          idea: idea.trim(),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.status === 429) {
-        const timeout = setTimeout(() => {
-          setRetryTimeout(null);
-        }, 30000);
-        setRetryTimeout(timeout);
-        throw new Error(
-          "Rate limit exceeded. Please wait 30 seconds before trying again."
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || `Server error: ${response.status}`);
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      const data = await validateIdea(idea);
 
       setResults(data);
+
+      // Refresh user data after successful validation to get updated prompt counts
+      await refreshUserData();
 
       let newChatId = null;
       if (saveChatHistory) {
@@ -155,6 +135,11 @@ export default function AppPage() {
   const handleUpgrade = () => {
     router.push("/app/billing");
   };
+
+  // Function to refresh data after plan changes
+  const handlePlanUpdate = useCallback(async () => {
+    await refreshUserData();
+  }, [refreshUserData]);
 
   const handleDownloadPDF = () => {
     if (!results) {
@@ -205,96 +190,106 @@ export default function AppPage() {
       className="flex-1 p-4"
     >
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <motion.div variants={itemAnimation} className="lg:col-span-1">
-            <div className="space-y-6">
-              <IdeaForm
-                idea={idea}
-                setIdea={setIdea}
-                handleSubmit={handleSubmit}
-                isLoading={isLoading}
-                promptsRemaining={promptsRemaining}
-                promptsUsed={promptsUsed}
-                dailyPromptsLimit={dailyPromptsLimit}
-                promptsResetDate={promptsResetDate}
-                isPremium={isPremium}
-                handleUpgrade={handleUpgrade}
-                retryTimeout={retryTimeout}
-                results={results}
-                resetForm={resetForm}
-              />
-              <UsageDashboard
-                isPremium={isPremium}
-                promptsUsed={promptsUsed}
-                promptsRemaining={promptsRemaining}
-                dailyPromptsLimit={dailyPromptsLimit}
-                promptsResetDate={promptsResetDate}
-              />
-              <PlanCard
-                isPremium={isPremium}
-                promptsUsed={promptsUsed}
-                promptsRemaining={promptsRemaining}
-                dailyPromptsLimit={dailyPromptsLimit}
-                promptsResetDate={promptsResetDate}
-              />
+        {/* Show loading state while user data is being initialized */}
+        {!isInitialized ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center space-y-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">Loading your dashboard...</p>
             </div>
-          </motion.div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <motion.div variants={itemAnimation} className="lg:col-span-1">
+              <div className="space-y-6">
+                <IdeaForm
+                  idea={idea}
+                  setIdea={setIdea}
+                  handleSubmit={handleSubmit}
+                  isLoading={isLoading}
+                  promptsRemaining={promptsRemaining}
+                  promptsUsed={promptsUsed}
+                  dailyPromptsLimit={dailyPromptsLimit}
+                  promptsResetDate={promptsResetDate}
+                  isPremium={isPremium}
+                  handleUpgrade={handleUpgrade}
+                  retryTimeout={retryTimeout}
+                  results={results}
+                  resetForm={resetForm}
+                />
+                <UsageDashboard
+                  isPremium={isPremium}
+                  promptsUsed={promptsUsed}
+                  promptsRemaining={promptsRemaining}
+                  dailyPromptsLimit={dailyPromptsLimit}
+                  promptsResetDate={promptsResetDate}
+                />
+                <PlanCard
+                  isPremium={isPremium}
+                  promptsUsed={promptsUsed}
+                  promptsRemaining={promptsRemaining}
+                  dailyPromptsLimit={dailyPromptsLimit}
+                  promptsResetDate={promptsResetDate}
+                />
+              </div>
+            </motion.div>
 
-          <motion.div variants={itemAnimation} className="lg:col-span-2">
-            <AnimatePresence mode="wait">
-              {!results && !isLoading && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="h-full flex items-center justify-center rounded-xl border-2 border-dashed p-12 text-center bg-muted/30 min-h-[400px]"
-                >
-                  <div className="space-y-3">
-                    <motion.div
-                      animate={{
-                        scale: [1, 1.1, 1],
-                        rotate: [0, 5, -5, 0],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Number.POSITIVE_INFINITY,
-                        repeatType: "reverse",
-                      }}
-                    >
-                      <Sparkles className="h-12 w-12 text-primary mx-auto" />
-                    </motion.div>
-                    <h3 className="text-2xl font-semibold">
-                      Validate Your Idea
-                    </h3>
-                    <p className="text-muted-foreground max-w-sm mx-auto">
-                      Enter your idea in the form and hit "Validate Idea" to get
-                      started. Our AI will analyze and provide insights.
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <motion.div variants={itemAnimation} className="lg:col-span-2">
+              <AnimatePresence mode="wait">
+                {!results && !isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="h-full flex items-center justify-center rounded-xl border-2 border-dashed p-12 text-center bg-muted/30 min-h-[400px]"
+                  >
+                    <div className="space-y-3">
+                      <motion.div
+                        animate={{
+                          scale: [1, 1.1, 1],
+                          rotate: [0, 5, -5, 0],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Number.POSITIVE_INFINITY,
+                          repeatType: "reverse",
+                        }}
+                      >
+                        <Sparkles className="h-12 w-12 text-primary mx-auto" />
+                      </motion.div>
+                      <h3 className="text-2xl font-semibold">
+                        Validate Your Idea
+                      </h3>
+                      <p className="text-muted-foreground max-w-sm mx-auto">
+                        Enter your idea in the form and hit "Validate Idea" to
+                        get started. Our AI will analyze and provide insights.
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            <AnimatePresence mode="wait">
-              {(results || isLoading) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <ResultsDisplay
-                    results={results}
-                    isPremium={isPremium}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    handleDownloadPDF={handleDownloadPDF}
-                    isLoading={isLoading}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </div>
+              <AnimatePresence mode="wait">
+                {(results || isLoading) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
+                    <ResultsDisplay
+                      results={results}
+                      isPremium={isPremium}
+                      activeTab={activeTab}
+                      setActiveTab={setActiveTab}
+                      handleDownloadPDF={handleDownloadPDF}
+                      isLoading={isLoading}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        )}
       </div>
     </motion.div>
   );
