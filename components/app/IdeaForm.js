@@ -17,12 +17,31 @@ export default function IdeaForm({
   handleSubmit,
   isLoading,
   promptsRemaining,
+  promptsUsed,
+  dailyPromptsLimit,
+  promptsResetDate,
   isPremium,
   handleUpgrade,
   retryTimeout,
   results,
   resetForm,
 }) {
+  const formatResetTime = () => {
+    if (!promptsResetDate) return "at midnight UTC";
+
+    const resetDate = new Date(promptsResetDate);
+    const now = new Date();
+
+    if (resetDate.toDateString() === now.toDateString()) {
+      return `at ${resetDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`;
+    }
+
+    return `at midnight UTC`;
+  };
+
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
@@ -98,12 +117,42 @@ export default function IdeaForm({
 
             <div className="text-center text-sm text-muted-foreground">
               {promptsRemaining > 0 ? (
-                <span>
-                  You have <strong>{promptsRemaining}</strong> prompt
-                  {promptsRemaining !== 1 ? "s" : ""} remaining today
-                </span>
+                <div className="space-y-1">
+                  <span>
+                    You have <strong>{promptsRemaining}</strong> prompt
+                    {promptsRemaining !== 1 ? "s" : ""} remaining today
+                  </span>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full"
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          (promptsUsed / dailyPromptsLimit) * 100
+                        )}%`,
+                      }}
+                    ></div>
+                  </div>
+                  <div className="text-xs">
+                    <span>
+                      Used {promptsUsed} of {dailyPromptsLimit} daily prompts •
+                      Resets {formatResetTime()}
+                    </span>
+                  </div>
+                </div>
               ) : (
-                <span>Resets at midnight UTC</span>
+                <div className="space-y-1">
+                  <span>Daily limit reached</span>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div className="bg-primary h-2 rounded-full w-full"></div>
+                  </div>
+                  <div className="text-xs">
+                    <span>
+                      Used {dailyPromptsLimit} of {dailyPromptsLimit} daily
+                      prompts • Resets {formatResetTime()}
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
           </div>

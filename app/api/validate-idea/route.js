@@ -1,3 +1,6 @@
+import { auth } from "@clerk/nextjs/server";
+import UserService from "../../../lib/services/UserService";
+
 const API_CONFIG = {
   baseUrl: "https://openrouter.ai/api/v1/chat/completions",
   model: "meta-llama/llama-3.3-70b-instruct",
@@ -365,14 +368,37 @@ class DataProcessor {
   }
 }
 
-// Main API handler
 export async function POST(req) {
   try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
-    const { idea, isPremium = false } = body;
+    const { idea } = body;
 
     const trimmedIdea = validateInput(idea);
     validateEnvironment();
+
+    const user = await UserService.getUserByClerkId(userId);
+
+    if (!user) {
+      throw new ValidationError(
+        "User not found. Please refresh and try again."
+      );
+    }
+
+    if (user.promptsRemaining <= 0) {
+      throw new ValidationError(
+        "You've reached your daily limit. Please upgrade or try again tomorrow."
+      );
+    }
+
+    const isPremium = user.planId === "premium";
+
+    await UserService.decrementPromptsRemaining(userId);
 
     const client = new OpenRouterClient(process.env.OPENROUTER_API_KEY);
 

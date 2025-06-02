@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import IdeaForm from "@/components/app/IdeaForm";
 import PlanCard from "@/components/app/PlanCard";
+import UsageDashboard from "@/components/app/UsageDashboard";
 import ResultsDisplay from "@/components/app/ResultsDisplay";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -15,10 +16,15 @@ import { useSidebarContext } from "@/hooks/useSidebarContext";
 
 export default function AppPage() {
   const router = useRouter();
-  const { user } = useUser();
 
-  // Sync user data with database when accessing the app
-  useUserSync();
+  const {
+    user: currentUser,
+    isPremium,
+    promptsUsed,
+    promptsRemaining,
+    dailyPromptsLimit,
+    promptsResetDate,
+  } = useUserSync();
 
   const {
     saveChatHistory,
@@ -29,13 +35,10 @@ export default function AppPage() {
   const [idea, setIdea] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
-  const [promptsRemaining, setPromptsRemaining] = useState(2);
-  const [isPremium, setIsPremium] = useState(false);
-  const [activeTab, setActiveTab] = useState("validation");
   const [retryTimeout, setRetryTimeout] = useState(null);
   const [enhancementStep, setEnhancementStep] = useState(0);
+  const [activeTab, setActiveTab] = useState("validation");
 
-  // Define chat handlers with useCallback to prevent infinite re-renders
   const handleChatSelect = useCallback((selectedChat) => {
     if (selectedChat) {
       setIdea(selectedChat.idea);
@@ -46,7 +49,6 @@ export default function AppPage() {
   }, []);
 
   const handleChatDelete = useCallback(() => {
-    // Reset form if the deleted chat was currently active
     setIdea("");
     setResults(null);
     setActiveTab("validation");
@@ -65,44 +67,6 @@ export default function AppPage() {
     handleChatSelect,
     handleChatDelete,
   ]);
-
-  // Load isPremium from localStorage on mount
-  useEffect(() => {
-    const storedPremium = localStorage.getItem("isPremium");
-    if (storedPremium === "true") {
-      setIsPremium(true);
-    }
-  }, []);
-
-  // Save isPremium to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem("isPremium", isPremium.toString());
-  }, [isPremium]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("promptsRemaining");
-    const lastReset = localStorage.getItem("lastPromptReset");
-    const today = new Date().toDateString();
-
-    if (lastReset !== today) {
-      setPromptsRemaining(isPremium ? 5 : 2);
-      localStorage.setItem("promptsRemaining", isPremium ? "5" : "2");
-      localStorage.setItem("lastPromptReset", today);
-    } else if (stored) {
-      setPromptsRemaining(Number.parseInt(stored, 10));
-    }
-  }, [isPremium]);
-
-  useEffect(() => {
-    const storedPremium = localStorage.getItem("isPremium");
-    if (storedPremium === "true") {
-      setIsPremium(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("isPremium", isPremium.toString());
-  }, [isPremium]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -143,7 +107,6 @@ export default function AppPage() {
         },
         body: JSON.stringify({
           idea: idea.trim(),
-          isPremium,
         }),
       });
 
@@ -168,9 +131,6 @@ export default function AppPage() {
       }
 
       setResults(data);
-      const newCount = promptsRemaining - 1;
-      setPromptsRemaining(newCount);
-      localStorage.setItem("promptsRemaining", newCount.toString());
 
       let newChatId = null;
       if (saveChatHistory) {
@@ -254,13 +214,29 @@ export default function AppPage() {
                 handleSubmit={handleSubmit}
                 isLoading={isLoading}
                 promptsRemaining={promptsRemaining}
+                promptsUsed={promptsUsed}
+                dailyPromptsLimit={dailyPromptsLimit}
+                promptsResetDate={promptsResetDate}
                 isPremium={isPremium}
                 handleUpgrade={handleUpgrade}
                 retryTimeout={retryTimeout}
                 results={results}
                 resetForm={resetForm}
               />
-              <PlanCard isPremium={isPremium} />
+              <UsageDashboard
+                isPremium={isPremium}
+                promptsUsed={promptsUsed}
+                promptsRemaining={promptsRemaining}
+                dailyPromptsLimit={dailyPromptsLimit}
+                promptsResetDate={promptsResetDate}
+              />
+              <PlanCard
+                isPremium={isPremium}
+                promptsUsed={promptsUsed}
+                promptsRemaining={promptsRemaining}
+                dailyPromptsLimit={dailyPromptsLimit}
+                promptsResetDate={promptsResetDate}
+              />
             </div>
           </motion.div>
 

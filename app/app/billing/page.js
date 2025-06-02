@@ -22,21 +22,27 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useUser } from "@/hooks/useUser";
+import { useUserSync } from "@/hooks/useUserSync";
 
 export default function BillingPage() {
   const { user } = useUser();
-  const [isPremium, setIsPremium] = useState(false);
+  const {
+    isPremium,
+    promptsUsed,
+    promptsRemaining,
+    dailyPromptsLimit,
+    promptsResetDate,
+  } = useUserSync();
   const [isLoading, setIsLoading] = useState(false);
   const [plans, setPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
+  const [currentPlanState, setCurrentPlanState] = useState(isPremium);
 
   useEffect(() => {
-    const storedPremium = localStorage.getItem("isPremium");
-    if (storedPremium === "true") {
-      setIsPremium(true);
-    }
+    setCurrentPlanState(isPremium);
+  }, [isPremium]);
 
-    // Fetch plans from the API
+  useEffect(() => {
     const fetchPlans = async () => {
       try {
         setIsLoadingPlans(true);
@@ -64,7 +70,6 @@ export default function BillingPage() {
 
     fetchPlans();
   }, []);
-  // Removed hardcoded plans array. Plans are now dynamically loaded from the API.
 
   const containerAnimation = {
     hidden: { opacity: 0 },
@@ -92,11 +97,26 @@ export default function BillingPage() {
   const handleUpgrade = async () => {
     try {
       setIsLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      setIsPremium(true);
-      localStorage.setItem("isPremium", "true");
-      toast.success("Successfully upgraded to Premium!");
+      const response = await fetch("/api/user/plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isPremium: true }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentPlanState(true);
+        localStorage.setItem("isPremium", "true");
+        toast.success("Successfully upgraded to Premium!");
+
+        window.location.reload();
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to upgrade");
+      }
     } catch (error) {
       console.error("Upgrade error:", error);
       toast.error("Failed to upgrade. Please try again.");
@@ -108,13 +128,28 @@ export default function BillingPage() {
   const handleCancel = async () => {
     try {
       setIsLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      setIsPremium(false);
-      localStorage.setItem("isPremium", "false");
-      toast.success(
-        "Successfully cancelled Premium plan. You've been downgraded to the Free plan."
-      );
+      const response = await fetch("/api/user/plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isPremium: false }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentPlanState(false);
+        localStorage.setItem("isPremium", "false");
+        toast.success(
+          "Successfully cancelled Premium plan. You've been downgraded to the Free plan."
+        );
+
+        window.location.reload();
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to downgrade");
+      }
     } catch (error) {
       console.error("Cancellation error:", error);
       toast.error("Failed to cancel subscription. Please try again.");
@@ -158,7 +193,7 @@ export default function BillingPage() {
                       Your current subscription plan and status
                     </CardDescription>
                   </div>
-                  {isPremium ? (
+                  {currentPlanState ? (
                     <Badge
                       variant="outline"
                       className="text-violet-600 border-violet-200"
@@ -177,7 +212,7 @@ export default function BillingPage() {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900">
-                      {isPremium ? (
+                      {currentPlanState ? (
                         <Crown className="h-5 w-5 text-violet-600" />
                       ) : (
                         <Sparkles className="h-5 w-5 text-gray-600" />
@@ -185,10 +220,10 @@ export default function BillingPage() {
                     </div>
                     <div>
                       <h3 className="font-medium">
-                        {isPremium ? "Premium Plan" : "Free Plan"}
+                        {currentPlanState ? "Premium Plan" : "Free Plan"}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {isPremium
+                        {currentPlanState
                           ? "Everything you need to succeed"
                           : "Perfect for getting started"}
                       </p>
@@ -196,30 +231,46 @@ export default function BillingPage() {
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-semibold">
-                      {isPremium ? "$5" : "$0"}
+                      {currentPlanState ? "$5" : "$0"}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {isPremium ? "per month" : "forever"}
+                      {currentPlanState ? "per month" : "forever"}
                     </div>
                   </div>
                 </div>
 
-                {!isPremium && (
+                {!currentPlanState && (
                   <div className="mt-4 space-y-3">
                     <div className="flex items-center justify-between text-sm">
                       <span>Daily prompts used</span>
-                      <span className="font-medium">2 / 2</span>
+                      <span className="font-medium">
+                        {promptsUsed} / {dailyPromptsLimit}
+                      </span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
-                      <div className="bg-primary h-2 rounded-full w-full"></div>
+                      <div
+                        className="bg-primary h-2 rounded-full"
+                        style={{
+                          width: `${Math.min(
+                            100,
+                            (promptsUsed / dailyPromptsLimit) * 100
+                          )}%`,
+                        }}
+                      ></div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Resets at midnight UTC
+                      {promptsRemaining} prompts remaining • Resets at{" "}
+                      {promptsResetDate
+                        ? new Date(promptsResetDate).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "midnight UTC"}
                     </p>
                   </div>
                 )}
 
-                {isPremium && (
+                {currentPlanState && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -257,8 +308,8 @@ export default function BillingPage() {
                     className={`h-full ${
                       plan.id === "premium" ? "border-violet-200 shadow-lg" : ""
                     } ${
-                      (isPremium && plan.id === "premium") ||
-                      (!isPremium && plan.id === "free")
+                      (currentPlanState && plan.id === "premium") ||
+                      (!currentPlanState && plan.id === "free")
                         ? "ring-2 ring-violet-500 ring-opacity-50"
                         : ""
                     }`}
@@ -311,7 +362,7 @@ export default function BillingPage() {
 
                       <div className="pt-4">
                         {plan.id === "premium" ? (
-                          !isPremium ? (
+                          !currentPlanState ? (
                             <Button
                               onClick={handleUpgrade}
                               className="w-full bg-violet-600 hover:bg-violet-700"
@@ -358,7 +409,7 @@ export default function BillingPage() {
                             </div>
                           )
                         ) : // Free plan button
-                        isPremium ? (
+                        currentPlanState ? (
                           <Button
                             variant="outline"
                             onClick={handleCancel}

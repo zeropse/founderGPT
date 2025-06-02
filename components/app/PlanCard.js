@@ -12,7 +12,23 @@ import {
 import { CheckCircle, Lock } from "lucide-react";
 import Link from "next/link";
 
-export default function PlanCard({ isPremium }) {
+export default function PlanCard({
+  isPremium,
+  promptsUsed = 0,
+  promptsRemaining = 0,
+  dailyPromptsLimit = 2,
+  promptsResetDate = null,
+}) {
+  const formatResetTime = () => {
+    if (!promptsResetDate) return "midnight UTC";
+
+    const resetDate = new Date(promptsResetDate);
+    return resetDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
@@ -32,10 +48,29 @@ export default function PlanCard({ isPremium }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <span>Daily prompts</span>
-            <Badge variant="outline">{isPremium ? "5" : "2"} / day</Badge>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span>Daily prompts</span>
+              <Badge variant="outline">{dailyPromptsLimit} / day</Badge>
+            </div>
+            <div className="w-full bg-muted rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (promptsUsed / dailyPromptsLimit) * 100
+                  )}%`,
+                }}
+              ></div>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              <span>
+                {promptsRemaining} remaining • Resets at {formatResetTime()}
+              </span>
+            </div>
           </div>
+
           <div className="flex justify-between items-center">
             <span>Idea enhancement</span>
             <Badge
