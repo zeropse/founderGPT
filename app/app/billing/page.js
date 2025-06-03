@@ -21,19 +21,10 @@ import {
   Crown,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useUser } from "@/hooks/useUser";
 import { useUserSync } from "@/hooks/useUserSync";
 
 export default function BillingPage() {
-  const { user } = useUser();
-  const {
-    isPremium,
-    promptsUsed,
-    promptsRemaining,
-    dailyPromptsLimit,
-    promptsResetDate,
-    refreshUserData,
-  } = useUserSync();
+  const { isPremium, refreshUserData } = useUserSync();
   const [isLoading, setIsLoading] = useState(false);
   const [plans, setPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
@@ -110,7 +101,6 @@ export default function BillingPage() {
       if (response.ok) {
         const data = await response.json();
         setCurrentPlanState(true);
-        localStorage.setItem("isPremium", "true");
         toast.success("Successfully upgraded to Premium!");
 
         await refreshUserData();
@@ -141,7 +131,6 @@ export default function BillingPage() {
       if (response.ok) {
         const data = await response.json();
         setCurrentPlanState(false);
-        localStorage.setItem("isPremium", "false");
         toast.success(
           "Successfully cancelled Premium plan. You've been downgraded to the Free plan."
         );
@@ -239,52 +228,6 @@ export default function BillingPage() {
                     </div>
                   </div>
                 </div>
-
-                {!currentPlanState && (
-                  <div className="mt-4 space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Daily prompts used</span>
-                      <span className="font-medium">
-                        {promptsUsed} / {dailyPromptsLimit}
-                      </span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-primary h-2 rounded-full"
-                        style={{
-                          width: `${Math.min(
-                            100,
-                            (promptsUsed / dailyPromptsLimit) * 100
-                          )}%`,
-                        }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {promptsRemaining} prompts remaining • Resets at{" "}
-                      {promptsResetDate
-                        ? new Date(promptsResetDate).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "midnight UTC"}
-                    </p>
-                  </div>
-                )}
-
-                {currentPlanState && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 p-4 rounded-lg border-2 border-violet-500/20"
-                  >
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span className="text-sm">
-                        Premium features active - Full access enabled
-                      </span>
-                    </div>
-                  </motion.div>
-                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -307,7 +250,7 @@ export default function BillingPage() {
                 >
                   <Card
                     className={`h-full ${
-                      plan.id === "premium" ? "border-violet-200 shadow-lg" : ""
+                      plan.id === "premium" ? "shadow-lg" : ""
                     } ${
                       (currentPlanState && plan.id === "premium") ||
                       (!currentPlanState && plan.id === "free")
@@ -409,33 +352,16 @@ export default function BillingPage() {
                               </Button>
                             </div>
                           )
-                        ) : // Free plan button
-                        currentPlanState ? (
+                        ) : !currentPlanState ? (
                           <Button
-                            variant="outline"
-                            onClick={handleCancel}
-                            className="w-full cursor-pointer"
-                            disabled={isLoading}
-                          >
-                            {isLoading ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Processing...
-                              </>
-                            ) : (
-                              "Downgrade to Free"
-                            )}
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            className="w-full border-green-200 text-green-700 cursor-default"
+                            variant="secondary"
+                            className="w-full bg-green-50 hover:bg-green-50 border-green-200 text-green-700 cursor-default"
                             disabled
                           >
-                            <CheckCircle className="mr-2 h-4 w-4" />
+                            <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
                             Current Plan
                           </Button>
-                        )}
+                        ) : null}
                       </div>
                     </CardContent>
                   </Card>

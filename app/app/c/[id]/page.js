@@ -17,7 +17,6 @@ export default function ChatPage() {
   const { user } = useUser();
   const { setChatSelectHandler, setChatDeleteHandler, resetCurrentChat } =
     useSidebarContext();
-
   const [chatData, setChatData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
@@ -57,11 +56,30 @@ export default function ChatPage() {
   }, [params.id, router]);
 
   useEffect(() => {
-    const storedPremium = localStorage.getItem("isPremium");
-    if (storedPremium === "true") {
-      setIsPremium(true);
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch("/api/user/sync", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.user) {
+            setIsPremium(result.user.planId === "premium");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    if (user) {
+      fetchUserData();
     }
-  }, []);
+  }, [user]);
 
   const handleChatSelect = useCallback(
     (selectedChat) => {

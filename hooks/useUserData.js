@@ -44,16 +44,6 @@ export const useUserData = () => {
             promptsResetDate: promptsResetDate || null,
             isLoading: false,
           });
-
-          // Update localStorage for compatibility
-          localStorage.setItem(
-            "isPremium",
-            planId === "premium" ? "true" : "false"
-          );
-          localStorage.setItem(
-            "promptsRemaining",
-            promptsRemaining?.toString() || "2"
-          );
         }
       } else {
         console.error("Failed to fetch user data");

@@ -22,7 +22,6 @@ export function UserDataProvider({ children }) {
 
   const initializationRef = useRef(false);
 
-  // Initialize user data only once when explicitly called
   const initializeUserData = useCallback(async (user) => {
     if (initializationRef.current || !user) {
       return;
@@ -31,20 +30,6 @@ export function UserDataProvider({ children }) {
     try {
       console.log("🔄 Initializing user data...");
 
-      // Load cached data immediately for better UX
-      const cachedPremium = localStorage.getItem("isPremium");
-      const cachedPrompts = localStorage.getItem("promptsRemaining");
-
-      if (cachedPremium && cachedPrompts) {
-        setUserData((prev) => ({
-          ...prev,
-          isPremium: cachedPremium === "true",
-          promptsRemaining: parseInt(cachedPrompts) || 2,
-          isInitialized: true,
-        }));
-      }
-
-      // Sync with database once
       const response = await fetch("/api/user/sync", {
         method: "POST",
         headers: {
@@ -74,16 +59,6 @@ export function UserDataProvider({ children }) {
             isInitialized: true,
           });
 
-          // Update localStorage
-          localStorage.setItem(
-            "isPremium",
-            planId === "premium" ? "true" : "false"
-          );
-          localStorage.setItem(
-            "promptsRemaining",
-            promptsRemaining?.toString() || "2"
-          );
-
           initializationRef.current = true;
           console.log("✅ User data initialized successfully");
         }
@@ -93,7 +68,6 @@ export function UserDataProvider({ children }) {
     }
   }, []);
 
-  // Refresh user data from database (called after actions)
   const refreshUserData = useCallback(async () => {
     try {
       console.log("🔄 Refreshing user data from database...");
@@ -126,16 +100,6 @@ export function UserDataProvider({ children }) {
             isInitialized: true,
           });
 
-          // Update localStorage
-          localStorage.setItem(
-            "isPremium",
-            planId === "premium" ? "true" : "false"
-          );
-          localStorage.setItem(
-            "promptsRemaining",
-            promptsRemaining?.toString() || "2"
-          );
-
           console.log("✅ User data refreshed successfully");
         }
       }
@@ -144,7 +108,6 @@ export function UserDataProvider({ children }) {
     }
   }, []);
 
-  // Update local state without database call (for immediate UI updates)
   const updateLocalUserData = useCallback((updates) => {
     setUserData((prev) => ({
       ...prev,
