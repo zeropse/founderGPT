@@ -81,7 +81,6 @@ export function useChatHistory() {
       toast.error("Failed to delete chat");
     }
   };
-
   const saveChatHistory = async (idea, results) => {
     if (results && idea && !currentChatId) {
       try {
@@ -98,7 +97,6 @@ export function useChatHistory() {
         if (response.ok && data.success) {
           const newChat = data.chat;
           const updatedChats = [newChat, ...chatHistories];
-
           setChatHistories(updatedChats);
           setCurrentChatId(newChat.id);
 
@@ -113,10 +111,12 @@ export function useChatHistory() {
           } else {
             toast.error(data.error || "Failed to save chat");
           }
+          return null;
         }
       } catch (error) {
         console.error("Error saving chat:", error);
-        toast.error("Failed to save chat");
+        toast.error("Failed to save chat history");
+        return null;
       }
     }
     return null;

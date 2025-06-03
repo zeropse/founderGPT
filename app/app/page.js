@@ -118,7 +118,7 @@ export default function AppPage() {
         progressSteps[stepIndex]();
         stepIndex++;
       }
-    }, 2000); // Update every 2 seconds
+    }, 2000);
 
     try {
       const data = await validateIdea(idea);
@@ -126,13 +126,21 @@ export default function AppPage() {
 
       let newChatId = null;
       if (saveChatHistory) {
-        newChatId = await saveChatHistory(idea.trim(), data);
-      }
+        try {
+          newChatId = await saveChatHistory(idea.trim(), data);
 
-      toast.success("Idea validated successfully!");
-
-      if (newChatId) {
-        router.push(`/app/c/${newChatId}`);
+          if (newChatId) {
+            toast.success("Idea validated successfully!");
+            router.push(`/app/c/${newChatId}`);
+          } else {
+            toast.success("Idea validated! Results displayed below.");
+          }
+        } catch (error) {
+          console.error("Failed to save chat history:", error);
+          toast.success("Idea validated! Results displayed below.");
+        }
+      } else {
+        toast.success("Idea validated! Results displayed below.");
       }
     } catch (error) {
       console.error("Validation error:", error);

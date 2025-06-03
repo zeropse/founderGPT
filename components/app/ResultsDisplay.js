@@ -328,14 +328,24 @@ export default function ResultsDisplay({
 
   if (!results) return null;
 
+  const safeResults = {
+    enhancedIdea: results.enhancedIdea || "No enhanced idea available",
+    marketValidation: results.marketValidation || null,
+    mvpFeatures: results.mvpFeatures || null,
+    techStack: results.techStack || null,
+    monetization: results.monetization || null,
+    landingPage: results.landingPage || null,
+    userPersonas: results.userPersonas || null,
+  };
+
   const wasGeneratedOnFreePlan =
     isPremium &&
-    !results.marketValidation &&
-    !results.mvpFeatures &&
-    !results.techStack &&
-    !results.monetization &&
-    !results.landingPage &&
-    !results.userPersonas;
+    !safeResults.marketValidation &&
+    !safeResults.mvpFeatures &&
+    !safeResults.techStack &&
+    !safeResults.monetization &&
+    !safeResults.landingPage &&
+    !safeResults.userPersonas;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -351,7 +361,7 @@ export default function ResultsDisplay({
         </CardHeader>
         <CardContent className="p-4 sm:p-6">
           <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
-            <MarkdownContent content={results.enhancedIdea} />
+            <MarkdownContent content={safeResults.enhancedIdea} />
           </ScrollArea>
         </CardContent>
       </Card>
@@ -419,9 +429,9 @@ export default function ResultsDisplay({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium && results.marketValidation ? (
+              {isPremium && safeResults.marketValidation ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
-                  <MarkdownContent content={results.marketValidation} />
+                  <MarkdownContent content={safeResults.marketValidation} />
                 </ScrollArea>
               ) : (
                 <div className="p-6">
@@ -442,9 +452,9 @@ export default function ResultsDisplay({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium && results.mvpFeatures ? (
+              {isPremium && safeResults.mvpFeatures ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
-                  <MarkdownContent content={results.mvpFeatures} />
+                  <MarkdownContent content={safeResults.mvpFeatures} />
                 </ScrollArea>
               ) : (
                 <div className="p-6">
@@ -465,9 +475,9 @@ export default function ResultsDisplay({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium && results.techStack ? (
+              {isPremium && safeResults.techStack ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
-                  <TechStackDisplay techStack={results.techStack} />
+                  <TechStackDisplay techStack={safeResults.techStack} />
                 </ScrollArea>
               ) : (
                 <div className="p-6">
@@ -486,9 +496,9 @@ export default function ResultsDisplay({
               <CardDescription>Revenue models for your product</CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium && results.monetization ? (
+              {isPremium && safeResults.monetization ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
-                  <MarkdownContent content={results.monetization} />
+                  <MarkdownContent content={safeResults.monetization} />
                 </ScrollArea>
               ) : (
                 <div className="p-6">
@@ -509,10 +519,10 @@ export default function ResultsDisplay({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium && results.landingPage ? (
+              {isPremium && safeResults.landingPage ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
                   <div className="space-y-6">
-                    {results.landingPage && (
+                    {safeResults.landingPage && (
                       <>
                         <div className="p-6 bg-gradient-to-r from-violet-500/5 to-violet-500/10 rounded-lg border">
                           <div className="flex items-center gap-2 mb-3">
@@ -522,7 +532,7 @@ export default function ResultsDisplay({
                             </h3>
                           </div>
                           <p className="text-2xl font-bold text-foreground leading-tight">
-                            {results.landingPage.headline}
+                            {safeResults.landingPage.headline}
                           </p>
                         </div>
 
@@ -534,7 +544,7 @@ export default function ResultsDisplay({
                             </h3>
                           </div>
                           <p className="text-lg text-foreground leading-relaxed">
-                            {results.landingPage.subheading}
+                            {safeResults.landingPage.subheading}
                           </p>
                         </div>
 
@@ -549,11 +559,11 @@ export default function ResultsDisplay({
                             size="lg"
                             className="font-semibold text-lg px-8 py-3 cursor-pointer"
                           >
-                            {results.landingPage.cta}
+                            {safeResults.landingPage.cta}
                           </Button>
                         </div>
 
-                        {results.landingPage.benefits && (
+                        {safeResults.landingPage.benefits && (
                           <div className="p-6 bg-muted/30 rounded-lg border">
                             <div className="flex items-center gap-2 mb-4">
                               <Users className="h-5 w-5 text-foreground" />
@@ -562,7 +572,7 @@ export default function ResultsDisplay({
                               </h3>
                             </div>
                             <div className="space-y-4">
-                              {results.landingPage.benefits.map(
+                              {safeResults.landingPage.benefits.map(
                                 (benefit, i) => (
                                   <div
                                     key={i}
@@ -603,11 +613,11 @@ export default function ResultsDisplay({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium && results.userPersonas ? (
+              {isPremium && safeResults.userPersonas ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
                   <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
-                    {results.userPersonas &&
-                      results.userPersonas.map((persona, i) => (
+                    {safeResults.userPersonas &&
+                      safeResults.userPersonas.map((persona, i) => (
                         <PersonaCard key={i} persona={persona} index={i} />
                       ))}
                   </div>
@@ -625,12 +635,12 @@ export default function ResultsDisplay({
       {/* Download PDF Button */}
       {isPremium &&
         results &&
-        (results.marketValidation ||
-          results.mvpFeatures ||
-          results.techStack ||
-          results.monetization ||
-          results.landingPage ||
-          results.userPersonas) && (
+        (safeResults.marketValidation ||
+          safeResults.mvpFeatures ||
+          safeResults.techStack ||
+          safeResults.monetization ||
+          safeResults.landingPage ||
+          safeResults.userPersonas) && (
           <Card className="border-border shadow-sm">
             <CardContent className="pt-6">
               <Button
