@@ -23,7 +23,6 @@ export default function AppPage() {
     dailyPromptsLimit,
     promptsResetDate,
     isInitialized,
-    refreshUserData,
     validateIdea,
   } = useUserData();
 
@@ -59,8 +58,10 @@ export default function AppPage() {
   }, [resetCurrentChat]);
 
   useEffect(() => {
-    setChatSelectHandler(handleChatSelect);
-    setChatDeleteHandler(handleChatDelete);
+    if (setChatSelectHandler && setChatDeleteHandler) {
+      setChatSelectHandler(handleChatSelect);
+      setChatDeleteHandler(handleChatDelete);
+    }
   }, [
     setChatSelectHandler,
     setChatDeleteHandler,
@@ -105,7 +106,7 @@ export default function AppPage() {
 
       let newChatId = null;
       if (saveChatHistory) {
-        newChatId = saveChatHistory(idea.trim(), data);
+        newChatId = await saveChatHistory(idea.trim(), data);
       }
 
       toast.success("Idea validated successfully!");

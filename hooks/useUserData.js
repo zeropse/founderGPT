@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "./useUser";
+import { cachedFetch, apiCache } from "@/lib/apiCache";
 
 export const useUserData = () => {
   const { user, isLoaded, isSignedIn } = useUser();
@@ -13,18 +14,33 @@ export const useUserData = () => {
     promptsResetDate: null,
     isInitialized: false,
   });
+  const fetchingRef = useRef(false);
+  const lastFetchRef = useRef(0);
 
-  const fetchUserData = useCallback(async () => {
-    if (!isLoaded || !isSignedIn || !user) return;
+  const fetchUserData = useCallback(
+    async (forceRefresh = false) => {
+      if (!isLoaded || !isSignedIn || !user) return;
 
-    try {
-      const response = await fetch("/api/user/sync", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
+      const now = Date.now();
 
-      if (response.ok) {
-        const result = await response.json();
+      if (fetchingRef.current && now - lastFetchRef.current < 1000) {
+        return;
+      }
+
+      fetchingRef.current = true;
+      lastFetchRef.current = now;
+
+      try {
+        const maxAge = forceRefresh ? 0 : 30000;
+        const result = await cachedFetch(
+          "/api/user/sync",
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          },
+          maxAge
+        );
+
         if (result.user) {
           const {
             planId,
@@ -33,20 +49,26 @@ export const useUserData = () => {
             dailyPromptsLimit,
             promptsResetDate,
           } = result.user;
-          setUserData({
+
+          const newUserData = {
             isPremium: planId === "premium",
             promptsUsed: promptsUsed || 0,
             promptsRemaining: promptsRemaining || 2,
             dailyPromptsLimit: dailyPromptsLimit || 2,
             promptsResetDate: promptsResetDate || null,
             isInitialized: true,
-          });
+          };
+
+          setUserData(newUserData);
         }
+      } catch (error) {
+        console.error("❌ Error fetching user data:", error);
+      } finally {
+        fetchingRef.current = false;
       }
-    } catch (error) {
-      console.error("❌ Error fetching user data:", error);
-    }
-  }, [isLoaded, isSignedIn, user]);
+    },
+    [isLoaded, isSignedIn, user]
+  );
 
   const initializeUserData = useCallback(async () => {
     if (!user) return;
@@ -59,14 +81,13 @@ export const useUserData = () => {
       });
 
       if (response.ok) {
-        await fetchUserData();
+        await fetchUserData(true);
       }
     } catch (error) {
       console.error("❌ Error initializing user data:", error);
     }
   }, [user, fetchUserData]);
 
-  // Update plan status
   const updatePlanStatus = useCallback(
     async (isPremium) => {
       try {
@@ -100,7 +121,8 @@ export const useUserData = () => {
 
         if (response.ok) {
           const data = await response.json();
-          await fetchUserData();
+          apiCache.clear("/api/user/sync");
+          await fetchUserData(true);
           return data;
         } else {
           const errorData = await response.json();
@@ -125,7 +147,7 @@ export const useUserData = () => {
     user,
     isLoaded,
     isSignedIn,
-    refreshUserData: fetchUserData,
+    refreshUserData: () => fetchUserData(true),
     updatePlanStatus,
     validateIdea,
   };

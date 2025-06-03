@@ -27,6 +27,7 @@ export async function POST(request) {
         id: user._id,
         clerkId: user.clerkId,
         planId: user.planId,
+        promptsUsed: user.promptsUsed,
         promptsRemaining: user.promptsRemaining,
         dailyPromptsLimit: user.dailyPromptsLimit,
         isPremium: user.planId === "premium",

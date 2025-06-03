@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import ResultsDisplay from "@/components/app/ResultsDisplay";
 import { handleDownloadPDF as downloadPDF } from "@/lib/pdfDownloader";
 import { useUserData } from "@/hooks/useUserData";
 import { useSidebarContext } from "@/hooks/useSidebarContext";
+import { cachedFetch } from "@/lib/apiCache";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -20,24 +21,34 @@ export default function ChatPage() {
   const [chatData, setChatData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("validation");
+  const loadingRef = useRef(false);
 
   useEffect(() => {
-    const loadChatData = () => {
-      try {
-        const storedChats = localStorage.getItem("chatHistories");
-        if (storedChats) {
-          const chatHistories = JSON.parse(storedChats);
-          const chat = chatHistories.find((c) => c.id === params.id);
+    const loadChatData = async () => {
+      if (!params.id) return;
 
-          if (chat) {
-            setChatData(chat);
-            toast.success("Chat loaded successfully");
-          } else {
-            toast.error("Chat not found");
-            router.push("/app");
-          }
+      if (loadingRef.current) {
+        return;
+      }
+
+      loadingRef.current = true;
+
+      try {
+        setIsLoading(true);
+        const data = await cachedFetch(
+          `/api/chats/${params.id}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          },
+          300000
+        );
+
+        if (data.success) {
+          setChatData(data.chat);
+          toast.success("Chat loaded successfully");
         } else {
-          toast.error("No chat history found");
+          toast.error("Chat not found");
           router.push("/app");
         }
       } catch (error) {
@@ -46,12 +57,11 @@ export default function ChatPage() {
         router.push("/app");
       } finally {
         setIsLoading(false);
+        loadingRef.current = false;
       }
     };
 
-    if (params.id) {
-      loadChatData();
-    }
+    loadChatData();
   }, [params.id, router]);
 
   const handleChatSelect = useCallback(

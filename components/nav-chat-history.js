@@ -18,11 +18,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MessageSquare, Trash2, Plus, Clock } from "lucide-react";
+import {
+  MessageSquare,
+  Trash2,
+  Plus,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
 import Link from "next/link";
 import { useState, useImperativeHandle, forwardRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
+import { Alert, AlertDescription } from "./ui/alert";
 import { useChatHistory } from "@/hooks/useChatHistory";
 
 export const NavChatHistory = forwardRef(function NavChatHistory(
@@ -33,7 +40,7 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
   const {
     chatHistories,
     currentChatId,
-    handleChatSelect,
+    isLoading,
     handleChatDelete,
     saveChatHistory,
     resetCurrentChat,
@@ -94,8 +101,31 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
         <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider mb-2 px-2">
           Recent Conversations
         </SidebarGroupLabel>
+
+        {chatHistories && chatHistories.length >= 8 && (
+          <div className="px-2 mb-3">
+            <Alert className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800">
+              <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              <AlertDescription className="text-xs text-yellow-800 dark:text-yellow-200">
+                {chatHistories.length === 10
+                  ? "Maximum chat limit reached (10/10). Delete some chats to create new ones."
+                  : `Approaching chat limit (${chatHistories.length}/10). Consider deleting old chats.`}
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+
         <SidebarMenu className="space-y-1">
-          {!chatHistories || chatHistories.length === 0 ? (
+          {isLoading ? (
+            <div className="px-4 py-8 text-center">
+              <div className="bg-muted/30 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+              <p className="text-sm text-muted-foreground font-medium mb-1">
+                Loading conversations...
+              </p>
+            </div>
+          ) : !chatHistories || chatHistories.length === 0 ? (
             <div className="px-4 py-8 text-center">
               <div className="bg-muted/30 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Clock className="h-8 w-8 text-muted-foreground/40" />
@@ -119,7 +149,6 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
                     className="flex items-center w-full p-6 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                     onClick={() => handleChatClick(chat.id)}
                   >
-                    {/* Chat info */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="p-2 rounded-lg bg-muted/50 shrink-0">
                         <MessageSquare className="h-4 w-4 text-muted-foreground" />

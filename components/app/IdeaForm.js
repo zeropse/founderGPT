@@ -122,35 +122,12 @@ export default function IdeaForm({
                     You have <strong>{promptsRemaining}</strong> prompt
                     {promptsRemaining !== 1 ? "s" : ""} remaining today
                   </span>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full"
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          (promptsUsed / dailyPromptsLimit) * 100
-                        )}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <div className="text-xs">
-                    <span>
-                      Used {promptsUsed} of {dailyPromptsLimit} daily prompts •
-                      Resets {formatResetTime()}
-                    </span>
-                  </div>
                 </div>
               ) : (
                 <div className="space-y-1">
                   <span>Daily limit reached</span>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full w-full"></div>
-                  </div>
                   <div className="text-xs">
-                    <span>
-                      Used {dailyPromptsLimit} of {dailyPromptsLimit} daily
-                      prompts • Resets {formatResetTime()}
-                    </span>
+                    <span>Resets {formatResetTime()}</span>
                   </div>
                 </div>
               )}
