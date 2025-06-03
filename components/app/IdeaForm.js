@@ -9,7 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { LoadingSpinner, LoadingDots } from "@/components/ui/loading-spinner";
 
 export default function IdeaForm({
   idea,
@@ -22,6 +23,7 @@ export default function IdeaForm({
   results,
   resetForm,
   promptsResetDate,
+  enhancementStep = 0,
 }) {
   const formatResetTime = () => {
     if (!promptsResetDate) return "midnight UTC";
@@ -68,15 +70,24 @@ export default function IdeaForm({
               className="w-full cursor-pointer"
             >
               {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
+                <div className="flex items-center justify-center gap-2">
+                  <LoadingSpinner size="sm" />
+                  <span>
+                    {enhancementStep === 0 && "Analyzing your idea..."}
+                    {enhancementStep === 1 && "Enhancing concept..."}
+                    {enhancementStep === 2 && "Researching market..."}
+                    {enhancementStep === 3 && "Generating features..."}
+                    {enhancementStep === 4 && "Building tech stack..."}
+                    {enhancementStep === 5 && "Creating strategies..."}
+                    {enhancementStep >= 6 && "Finalizing results..."}
+                  </span>
+                  <LoadingDots />
+                </div>
               ) : retryTimeout !== null ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Please wait...
-                </>
+                <div className="flex items-center justify-center gap-2">
+                  <LoadingSpinner size="sm" />
+                  <span>Please wait...</span>
+                </div>
               ) : promptsRemaining === 0 ? (
                 <>
                   <AlertCircle className="mr-2 h-4 w-4" />

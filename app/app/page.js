@@ -6,6 +6,7 @@ import IdeaForm from "@/components/app/IdeaForm";
 import PlanCard from "@/components/app/PlanCard";
 import UsageDashboard from "@/components/app/UsageDashboard";
 import ResultsDisplay from "@/components/app/ResultsDisplay";
+import { UserDataLoadingSkeleton } from "@/components/ui/loading-skeletons";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -38,6 +39,7 @@ export default function AppPage() {
   const [retryTimeout, setRetryTimeout] = useState(null);
   const [enhancementStep, setEnhancementStep] = useState(0);
   const [activeTab, setActiveTab] = useState("validation");
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
 
   const handleChatSelect = useCallback((selectedChat) => {
     if (selectedChat) {
@@ -100,6 +102,24 @@ export default function AppPage() {
     setResults(null);
     setEnhancementStep(0);
 
+    // Progressive loading steps
+    const progressSteps = [
+      () => setEnhancementStep(1), // Enhancing concept
+      () => setEnhancementStep(2), // Researching market
+      () => setEnhancementStep(3), // Generating features
+      () => setEnhancementStep(4), // Building tech stack
+      () => setEnhancementStep(5), // Creating strategies
+      () => setEnhancementStep(6), // Finalizing results
+    ];
+
+    let stepIndex = 0;
+    const progressInterval = setInterval(() => {
+      if (stepIndex < progressSteps.length) {
+        progressSteps[stepIndex]();
+        stepIndex++;
+      }
+    }, 2000); // Update every 2 seconds
+
     try {
       const data = await validateIdea(idea);
       setResults(data);
@@ -120,7 +140,9 @@ export default function AppPage() {
         error.message || "Failed to validate idea. Please try again."
       );
     } finally {
+      clearInterval(progressInterval);
       setIsLoading(false);
+      setEnhancementStep(0);
     }
   };
 
@@ -128,13 +150,30 @@ export default function AppPage() {
     router.push("/app/billing");
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!results) {
-      alert("No data available to download");
+      toast.error("No data available to download");
       return;
     }
 
-    downloadPDF(results);
+    try {
+      setIsDownloadingPDF(true);
+      toast.loading("Generating PDF report...", { id: "pdf-download" });
+
+      // Add a small delay to show loading state
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      downloadPDF(results);
+
+      toast.success("PDF downloaded successfully!", { id: "pdf-download" });
+    } catch (error) {
+      console.error("PDF download error:", error);
+      toast.error("Failed to generate PDF. Please try again.", {
+        id: "pdf-download",
+      });
+    } finally {
+      setIsDownloadingPDF(false);
+    }
   };
 
   const resetForm = useCallback(() => {
@@ -178,12 +217,7 @@ export default function AppPage() {
     >
       <div className="max-w-6xl mx-auto">
         {!isInitialized ? (
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center space-y-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground">Loading your dashboard...</p>
-            </div>
-          </div>
+          <UserDataLoadingSkeleton />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <motion.div variants={itemAnimation} className="lg:col-span-1">
@@ -202,6 +236,7 @@ export default function AppPage() {
                   retryTimeout={retryTimeout}
                   results={results}
                   resetForm={resetForm}
+                  enhancementStep={enhancementStep}
                 />
                 <UsageDashboard
                   isPremium={isPremium}
@@ -269,6 +304,8 @@ export default function AppPage() {
                       setActiveTab={setActiveTab}
                       handleDownloadPDF={handleDownloadPDF}
                       isLoading={isLoading}
+                      enhancementStep={enhancementStep}
+                      isDownloadingPDF={isDownloadingPDF}
                     />
                   </motion.div>
                 )}

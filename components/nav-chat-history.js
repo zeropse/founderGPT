@@ -30,6 +30,7 @@ import { useState, useImperativeHandle, forwardRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Alert, AlertDescription } from "./ui/alert";
+import { ChatHistoryLoadingSkeleton } from "./ui/loading-skeletons";
 import { useChatHistory } from "@/hooks/useChatHistory";
 
 export const NavChatHistory = forwardRef(function NavChatHistory(
@@ -117,14 +118,7 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
 
         <SidebarMenu className="space-y-1">
           {isLoading ? (
-            <div className="px-4 py-8 text-center">
-              <div className="bg-muted/30 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              </div>
-              <p className="text-sm text-muted-foreground font-medium mb-1">
-                Loading conversations...
-              </p>
-            </div>
+            <ChatHistoryLoadingSkeleton />
           ) : !chatHistories || chatHistories.length === 0 ? (
             <div className="px-4 py-8 text-center">
               <div className="bg-muted/30 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -176,7 +170,7 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
                       </div>
                     </div>
 
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0 ml-auto pl-4">
+                    <div className="opacity-0 hover:opacity-100 transition-opacity duration-200 flex-shrink-0 ml-auto pl-4">
                       <AlertDialog
                         open={deleteDialogOpen}
                         onOpenChange={setDeleteDialogOpen}

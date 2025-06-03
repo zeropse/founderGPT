@@ -11,6 +11,8 @@ import { handleDownloadPDF as downloadPDF } from "@/lib/pdfDownloader";
 import { useUserData } from "@/hooks/useUserData";
 import { useSidebarContext } from "@/hooks/useSidebarContext";
 import { cachedFetch } from "@/lib/apiCache";
+import { LoadingSpinner, LoadingDots } from "@/components/ui/loading-spinner";
+import { DatabaseLoadingSkeleton } from "@/components/ui/loading-skeletons";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -21,6 +23,7 @@ export default function ChatPage() {
   const [chatData, setChatData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("validation");
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
   const loadingRef = useRef(false);
 
   useEffect(() => {
@@ -94,12 +97,30 @@ export default function ChatPage() {
     router.push("/app");
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!chatData?.results) {
       toast.error("No data available to download");
       return;
     }
-    downloadPDF(chatData.results);
+
+    try {
+      setIsDownloadingPDF(true);
+      toast.loading("Generating PDF report...", { id: "pdf-download" });
+
+      // Add a small delay to show loading state
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      downloadPDF(chatData.results);
+
+      toast.success("PDF downloaded successfully!", { id: "pdf-download" });
+    } catch (error) {
+      console.error("PDF download error:", error);
+      toast.error("Failed to generate PDF. Please try again.", {
+        id: "pdf-download",
+      });
+    } finally {
+      setIsDownloadingPDF(false);
+    }
   };
 
   const containerAnimation = {
@@ -129,16 +150,16 @@ export default function ChatPage() {
     return (
       <div className="flex-1 p-4">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center space-y-4">
-              <div className="flex items-center justify-center mb-4">
-                <Sparkles className="h-12 w-12 text-primary animate-pulse" />
-              </div>
-              <h3 className="text-xl font-medium text-primary">
-                Loading chat...
-              </h3>
-            </div>
-          </div>
+          <DatabaseLoadingSkeleton
+            title="Loading your chat..."
+            subtitle="Retrieving conversation history and results"
+            steps={[
+              "Fetching chat data",
+              "Loading conversation history",
+              "Preparing results display",
+              "Almost ready!",
+            ]}
+          />
         </div>
       </div>
     );
@@ -216,6 +237,7 @@ export default function ChatPage() {
                 setActiveTab={setActiveTab}
                 handleDownloadPDF={handleDownloadPDF}
                 isLoading={false}
+                isDownloadingPDF={isDownloadingPDF}
               />
             </motion.div>
           </AnimatePresence>

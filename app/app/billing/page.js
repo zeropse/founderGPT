@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useUserData } from "@/hooks/useUserData";
+import { PlanLoadingSkeleton } from "@/components/ui/loading-skeletons";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function BillingPage() {
   const { isPremium, updatePlanStatus } = useUserData();
@@ -220,131 +222,143 @@ export default function BillingPage() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              {plans.map((plan) => (
-                <motion.div
-                  key={plan.id}
-                  variants={itemAnimation}
-                  className="relative"
-                >
-                  <Card
-                    className={`h-full ${
-                      plan.id === "premium" ? "shadow-lg" : ""
-                    } ${
-                      (currentPlanState && plan.id === "premium") ||
-                      (!currentPlanState && plan.id === "free")
-                        ? "ring-2 ring-violet-500 ring-opacity-50"
-                        : ""
-                    }`}
+              {isLoadingPlans ? (
+                <PlanLoadingSkeleton />
+              ) : (
+                plans.map((plan) => (
+                  <motion.div
+                    key={plan.id}
+                    variants={itemAnimation}
+                    className="relative"
                   >
-                    {plan.badge && (
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                        <Badge className="bg-violet-600 hover:bg-violet-700 text-white px-3 py-1">
-                          {plan.badge}
-                        </Badge>
-                      </div>
-                    )}
-
-                    <CardHeader className="text-center pb-4">
-                      <div className="text-3xl mb-2">{plan.icon}</div>
-                      <CardTitle className="text-xl">{plan.name}</CardTitle>
-                      <CardDescription className="text-sm">
-                        {plan.tagline}
-                      </CardDescription>
-                      <div className="mt-4">
-                        <div className="text-3xl font-bold">
-                          {plan.price}
-                          <span className="text-lg font-normal text-muted-foreground ml-1">
-                            {plan.period}
-                          </span>
+                    <Card
+                      className={`h-full ${
+                        plan.id === "premium" ? "shadow-lg" : ""
+                      } ${
+                        (currentPlanState && plan.id === "premium") ||
+                        (!currentPlanState && plan.id === "free")
+                          ? "ring-2 ring-violet-500 ring-opacity-50"
+                          : ""
+                      }`}
+                    >
+                      {plan.badge && (
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                          <Badge className="bg-violet-600 hover:bg-violet-700 text-white px-3 py-1">
+                            {plan.badge}
+                          </Badge>
                         </div>
-                      </div>
-                    </CardHeader>
+                      )}
 
-                    <CardContent className="space-y-6">
-                      <div className="space-y-3">
-                        {plan.features.map((feature, index) => (
-                          <div key={index} className="flex items-center gap-3">
-                            {feature.included ? (
-                              <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                            ) : (
-                              <X className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                            )}
-                            <span
-                              className={`text-sm ${
-                                feature.included
-                                  ? "text-foreground"
-                                  : "text-muted-foreground"
-                              }`}
-                            >
-                              {feature.name}
+                      <CardHeader className="text-center pb-4">
+                        <div className="text-3xl mb-2">{plan.icon}</div>
+                        <CardTitle className="text-xl">{plan.name}</CardTitle>
+                        <CardDescription className="text-sm">
+                          {plan.tagline}
+                        </CardDescription>
+                        <div className="mt-4">
+                          <div className="text-3xl font-bold">
+                            {plan.price}
+                            <span className="text-lg font-normal text-muted-foreground ml-1">
+                              {plan.period}
                             </span>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      </CardHeader>
 
-                      <div className="pt-4">
-                        {plan.id === "premium" ? (
-                          !currentPlanState ? (
-                            <Button
-                              onClick={handleUpgrade}
-                              className="w-full bg-violet-600 hover:bg-violet-700 cursor-pointer"
-                              disabled={isLoading}
+                      <CardContent className="space-y-6">
+                        <div className="space-y-3">
+                          {plan.features.map((feature, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-3"
                             >
-                              {isLoading ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Processing...
-                                </>
+                              {feature.included ? (
+                                <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                               ) : (
-                                <>
-                                  <Crown className="mr-2 h-4 w-4" />
-                                  Upgrade to Premium
-                                </>
+                                <X className="h-4 w-4 text-gray-400 flex-shrink-0" />
                               )}
-                            </Button>
-                          ) : (
-                            <div className="space-y-3">
-                              <Button
-                                variant="secondary"
-                                className="w-full border-green-200 text-green-700"
-                                disabled
+                              <span
+                                className={`text-sm ${
+                                  feature.included
+                                    ? "text-foreground"
+                                    : "text-muted-foreground"
+                                }`}
                               >
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Current Plan
-                              </Button>
+                                {feature.name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="pt-4">
+                          {plan.id === "premium" ? (
+                            !currentPlanState ? (
                               <Button
-                                variant="destructive"
-                                onClick={handleCancel}
-                                className="w-full cursor-pointer"
+                                onClick={handleUpgrade}
+                                className="w-full bg-violet-600 hover:bg-violet-700 cursor-pointer"
                                 disabled={isLoading}
-                                size="sm"
                               >
                                 {isLoading ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Processing...
-                                  </>
+                                  <div className="flex items-center justify-center">
+                                    <LoadingSpinner size="sm" variant="white" />
+                                    <span className="ml-2">Processing...</span>
+                                  </div>
                                 ) : (
-                                  "Cancel Subscription"
+                                  <>
+                                    <Crown className="mr-2 h-4 w-4" />
+                                    Upgrade to Premium
+                                  </>
                                 )}
                               </Button>
-                            </div>
-                          )
-                        ) : !currentPlanState ? (
-                          <Button
-                            variant="secondary"
-                            className="w-full bg-green-50 hover:bg-green-50 border-green-200 text-green-700 cursor-default"
-                            disabled
-                          >
-                            <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
-                            Current Plan
-                          </Button>
-                        ) : null}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+                            ) : (
+                              <div className="space-y-3">
+                                <Button
+                                  variant="secondary"
+                                  className="w-full border-green-200 text-green-700"
+                                  disabled
+                                >
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                  Current Plan
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={handleCancel}
+                                  className="w-full cursor-pointer"
+                                  disabled={isLoading}
+                                  size="sm"
+                                >
+                                  {isLoading ? (
+                                    <div className="flex items-center justify-center">
+                                      <LoadingSpinner
+                                        size="sm"
+                                        variant="destructive"
+                                      />
+                                      <span className="ml-2">
+                                        Processing...
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    "Cancel Subscription"
+                                  )}
+                                </Button>
+                              </div>
+                            )
+                          ) : !currentPlanState ? (
+                            <Button
+                              variant="secondary"
+                              className="w-full bg-green-50 hover:bg-green-50 border-green-200 text-green-700 cursor-default"
+                              disabled
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                              Current Plan
+                            </Button>
+                          ) : null}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))
+              )}
             </div>
           </motion.div>
         </div>

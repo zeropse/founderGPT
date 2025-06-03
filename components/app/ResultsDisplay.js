@@ -16,7 +16,11 @@ import {
   RefreshCw,
   Activity,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner, LoadingDots } from "@/components/ui/loading-spinner";
+import { DatabaseLoadingSkeleton } from "@/components/ui/loading-skeletons";
+import { IdeaAnalysisLoading } from "@/components/ui/loading-states";
 import {
   Card,
   CardContent,
@@ -45,34 +49,39 @@ const PremiumLock = ({ feature }) => (
   </div>
 );
 
-const LoadingSkeleton = () => (
-  <div className="space-y-8 animate-pulse">
-    <div className="flex items-center justify-center py-12">
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center mb-4">
-          <Sparkles className="h-12 w-12 text-primary animate-pulse" />
-        </div>
-        <h3 className="text-xl font-medium text-primary">
-          Analyzing your idea...
-        </h3>
-        <div className="flex justify-center gap-2">
-          <span
-            className="w-2 h-2 rounded-full bg-primary animate-bounce"
-            style={{ animationDelay: "0ms" }}
-          />
-          <span
-            className="w-2 h-2 rounded-full bg-primary animate-bounce"
-            style={{ animationDelay: "150ms" }}
-          />
-          <span
-            className="w-2 h-2 rounded-full bg-primary animate-bounce"
-            style={{ animationDelay: "300ms" }}
-          />
-        </div>
-      </div>
-    </div>
-  </div>
-);
+const LoadingSkeleton = ({ enhancementStep = 0 }) => {
+  const loadingSteps = [
+    {
+      title: "Enhancing Your Idea",
+      subtitle: "AI is analyzing your concept for clarity and market fit",
+      icon: <Sparkles className="h-8 w-8 text-violet-500" />,
+    },
+    {
+      title: "Market Research",
+      subtitle: "Gathering competitive intelligence and market trends",
+      icon: <TrendingUp className="h-8 w-8 text-blue-500" />,
+    },
+    {
+      title: "Technical Analysis",
+      subtitle: "Evaluating technology stack and development requirements",
+      icon: <Code className="h-8 w-8 text-green-500" />,
+    },
+    {
+      title: "Business Planning",
+      subtitle: "Creating monetization strategies and user personas",
+      icon: <DollarSign className="h-8 w-8 text-orange-500" />,
+    },
+  ];
+
+  return (
+    <DatabaseLoadingSkeleton
+      steps={loadingSteps}
+      currentStep={enhancementStep}
+      title="Analyzing Your Idea"
+      subtitle="Our AI is creating a comprehensive business analysis"
+    />
+  );
+};
 
 const cleanMarkdownContent = (content) => {
   if (!content) return content;
@@ -304,18 +313,14 @@ export default function ResultsDisplay({
   setActiveTab,
   handleDownloadPDF,
   isLoading,
+  enhancementStep = 0,
+  isDownloadingPDF = false,
 }) {
   if (isLoading) {
     return (
       <Card className="border-border shadow-md">
-        <CardHeader>
-          <CardTitle>Enhancing Your Idea</CardTitle>
-          <CardDescription>
-            Please wait while we process your request
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LoadingSkeleton />
+        <CardContent className="p-0">
+          <LoadingSkeleton enhancementStep={enhancementStep} />
         </CardContent>
       </Card>
     );
@@ -632,9 +637,19 @@ export default function ResultsDisplay({
                 className="w-full cursor-pointer"
                 variant="outline"
                 onClick={handleDownloadPDF}
+                disabled={isDownloadingPDF}
               >
-                <Download className="mr-2 h-4 w-4" />
-                Download Full Report as PDF
+                {isDownloadingPDF ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <LoadingSpinner size="sm" />
+                    <span>Generating PDF...</span>
+                  </div>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Full Report as PDF
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
