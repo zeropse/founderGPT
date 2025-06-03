@@ -119,18 +119,6 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
         <SidebarMenu className="space-y-1">
           {isLoading ? (
             <ChatHistoryLoadingSkeleton />
-          ) : !chatHistories || chatHistories.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <div className="bg-muted/30 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <Clock className="h-8 w-8 text-muted-foreground/40" />
-              </div>
-              <p className="text-sm text-muted-foreground font-medium mb-1">
-                No conversations yet
-              </p>
-              <p className="text-xs text-muted-foreground/60">
-                Start a new chat to begin validating your ideas
-              </p>
-            </div>
           ) : (
             chatHistories.map((chat) => (
               <SidebarMenuItem key={chat.id}>
