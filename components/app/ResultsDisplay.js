@@ -323,6 +323,15 @@ export default function ResultsDisplay({
 
   if (!results) return null;
 
+  const wasGeneratedOnFreePlan =
+    isPremium &&
+    !results.marketValidation &&
+    !results.mvpFeatures &&
+    !results.techStack &&
+    !results.monetization &&
+    !results.landingPage &&
+    !results.userPersonas;
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <Card className="overflow-hidden border-border shadow-md">
@@ -341,6 +350,37 @@ export default function ResultsDisplay({
           </ScrollArea>
         </CardContent>
       </Card>
+
+      {wasGeneratedOnFreePlan && (
+        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg">
+                <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-amber-800 dark:text-amber-200 mb-1">
+                  Limited Analysis Available
+                </h3>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
+                  This analysis was generated when you had a free plan, so it
+                  only includes the enhanced idea. Create a new analysis to get
+                  the full premium features like market validation, MVP
+                  features, tech stack recommendations, and more.
+                </p>
+                <Link href="/app">
+                  <Button
+                    size="sm"
+                    className="bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+                  >
+                    Create New Analysis
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 w-full">
@@ -374,7 +414,7 @@ export default function ResultsDisplay({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium ? (
+              {isPremium && results.marketValidation ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
                   <MarkdownContent content={results.marketValidation} />
                 </ScrollArea>
@@ -397,7 +437,7 @@ export default function ResultsDisplay({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium ? (
+              {isPremium && results.mvpFeatures ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
                   <MarkdownContent content={results.mvpFeatures} />
                 </ScrollArea>
@@ -420,7 +460,7 @@ export default function ResultsDisplay({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium ? (
+              {isPremium && results.techStack ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
                   <TechStackDisplay techStack={results.techStack} />
                 </ScrollArea>
@@ -441,7 +481,7 @@ export default function ResultsDisplay({
               <CardDescription>Revenue models for your product</CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium ? (
+              {isPremium && results.monetization ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
                   <MarkdownContent content={results.monetization} />
                 </ScrollArea>
@@ -464,7 +504,7 @@ export default function ResultsDisplay({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium ? (
+              {isPremium && results.landingPage ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
                   <div className="space-y-6">
                     {results.landingPage && (
@@ -558,7 +598,7 @@ export default function ResultsDisplay({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {isPremium ? (
+              {isPremium && results.userPersonas ? (
                 <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px] p-6">
                   <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
                     {results.userPersonas &&
@@ -578,20 +618,27 @@ export default function ResultsDisplay({
       </Tabs>
 
       {/* Download PDF Button */}
-      {isPremium && results && (
-        <Card className="border-border shadow-sm">
-          <CardContent className="pt-6">
-            <Button
-              className="w-full cursor-pointer"
-              variant="outline"
-              onClick={handleDownloadPDF}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download Full Report as PDF
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {isPremium &&
+        results &&
+        (results.marketValidation ||
+          results.mvpFeatures ||
+          results.techStack ||
+          results.monetization ||
+          results.landingPage ||
+          results.userPersonas) && (
+          <Card className="border-border shadow-sm">
+            <CardContent className="pt-6">
+              <Button
+                className="w-full cursor-pointer"
+                variant="outline"
+                onClick={handleDownloadPDF}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download Full Report as PDF
+              </Button>
+            </CardContent>
+          </Card>
+        )}
     </div>
   );
 }

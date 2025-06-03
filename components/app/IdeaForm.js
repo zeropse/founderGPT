@@ -17,37 +17,33 @@ export default function IdeaForm({
   handleSubmit,
   isLoading,
   promptsRemaining,
-  promptsUsed,
-  dailyPromptsLimit,
-  promptsResetDate,
   isPremium,
-  handleUpgrade,
   retryTimeout,
   results,
   resetForm,
+  promptsResetDate,
 }) {
   const formatResetTime = () => {
-    if (!promptsResetDate) return "at midnight UTC";
+    if (!promptsResetDate) return "midnight UTC";
 
     const resetDate = new Date(promptsResetDate);
     const now = new Date();
 
-    if (resetDate.toDateString() === now.toDateString()) {
-      return `at ${resetDate.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`;
+    const timeDiff = resetDate.getTime() - now.getTime();
+    const hoursUntilReset = Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60)));
+
+    if (hoursUntilReset <= 24) {
+      return `in ${hoursUntilReset} hour${hoursUntilReset !== 1 ? "s" : ""}`;
     }
 
-    return `at midnight UTC`;
+    return resetDate.toLocaleDateString();
   };
-
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
         <CardTitle>Idea Validator</CardTitle>
         <CardDescription>
-          Enter your raw idea, and our AI will help refine and validate it
+          Enter your raw idea, and our AI will help refine and validate it.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -81,6 +77,11 @@ export default function IdeaForm({
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Please wait...
                 </>
+              ) : promptsRemaining === 0 ? (
+                <>
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  Daily Limit Reached
+                </>
               ) : (
                 <>
                   Validate Idea <ArrowRight className="ml-2 h-4 w-4" />
@@ -99,39 +100,20 @@ export default function IdeaForm({
               </Button>
             )}
 
-            {promptsRemaining === 0 && !isPremium && (
-              <div className="text-center space-y-2">
-                <div className="flex items-center justify-center text-destructive gap-1">
+            {promptsRemaining === 1 && (
+              <div className="text-center space-y-2 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                <div className="flex items-center justify-center text-orange-700 dark:text-orange-300 gap-2">
                   <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm">Daily limit reached</span>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full cursor-pointer"
-                  onClick={handleUpgrade}
-                >
-                  Upgrade for $5/month
-                </Button>
-              </div>
-            )}
-
-            <div className="text-center text-sm text-muted-foreground">
-              {promptsRemaining > 0 ? (
-                <div className="space-y-1">
-                  <span>
-                    You have <strong>{promptsRemaining}</strong> prompt
-                    {promptsRemaining !== 1 ? "s" : ""} remaining today
+                  <span className="text-sm font-medium">
+                    Last prompt remaining
                   </span>
                 </div>
-              ) : (
-                <div className="space-y-1">
-                  <span>Daily limit reached</span>
-                  <div className="text-xs">
-                    <span>Resets {formatResetTime()}</span>
-                  </div>
+                <div className="text-xs text-orange-600 dark:text-orange-400">
+                  Consider upgrading to Premium for {isPremium ? "more" : "5"}{" "}
+                  daily prompts
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </form>
       </CardContent>
