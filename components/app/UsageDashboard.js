@@ -82,9 +82,6 @@ export default function UsageDashboard({
                 <span className="text-sm text-muted-foreground">
                   {promptsUsed} / {dailyPromptsLimit}
                 </span>
-                <Badge variant="outline" className={getStatusColor()}>
-                  {promptsRemaining} left
-                </Badge>
               </div>
             </div>
 

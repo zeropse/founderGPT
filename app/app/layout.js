@@ -10,7 +10,6 @@ import {
   SidebarProvider as CustomSidebarProvider,
   useSidebarContext,
 } from "@/hooks/useSidebarContext";
-import { UserDataProvider } from "@/contexts/UserDataContext";
 
 function AppLayoutContent({ children }) {
   const { user } = useUser();
@@ -48,9 +47,7 @@ function AppLayoutContent({ children }) {
 export default function AppLayout({ children }) {
   return (
     <CustomSidebarProvider>
-      <UserDataProvider>
-        <AppLayoutContent>{children}</AppLayoutContent>
-      </UserDataProvider>
+      <AppLayoutContent>{children}</AppLayoutContent>
     </CustomSidebarProvider>
   );
 }

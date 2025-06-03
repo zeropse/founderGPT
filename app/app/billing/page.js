@@ -21,10 +21,10 @@ import {
   Crown,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useUserSync } from "@/hooks/useUserSync";
+import { useUserData } from "@/hooks/useUserData";
 
 export default function BillingPage() {
-  const { isPremium, refreshUserData } = useUserSync();
+  const { isPremium, updatePlanStatus } = useUserData();
   const [isLoading, setIsLoading] = useState(false);
   const [plans, setPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
@@ -87,26 +87,15 @@ export default function BillingPage() {
   };
 
   const handleUpgrade = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
+      const success = await updatePlanStatus(true);
 
-      const response = await fetch("/api/user/plan", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ isPremium: true }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+      if (success) {
         setCurrentPlanState(true);
         toast.success("Successfully upgraded to Premium!");
-
-        await refreshUserData();
       } else {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to upgrade");
+        toast.error("Failed to upgrade. Please try again.");
       }
     } catch (error) {
       console.error("Upgrade error:", error);
@@ -117,28 +106,17 @@ export default function BillingPage() {
   };
 
   const handleCancel = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
+      const success = await updatePlanStatus(false);
 
-      const response = await fetch("/api/user/plan", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ isPremium: false }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+      if (success) {
         setCurrentPlanState(false);
         toast.success(
           "Successfully cancelled Premium plan. You've been downgraded to the Free plan."
         );
-
-        await refreshUserData();
       } else {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to downgrade");
+        toast.error("Failed to cancel subscription. Please try again.");
       }
     } catch (error) {
       console.error("Cancellation error:", error);

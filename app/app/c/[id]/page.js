@@ -8,18 +8,17 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ResultsDisplay from "@/components/app/ResultsDisplay";
 import { handleDownloadPDF as downloadPDF } from "@/lib/pdfDownloader";
-import { useUser } from "@/hooks/useUser";
+import { useUserData } from "@/hooks/useUserData";
 import { useSidebarContext } from "@/hooks/useSidebarContext";
 
 export default function ChatPage() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useUser();
+  const { user, isPremium } = useUserData();
   const { setChatSelectHandler, setChatDeleteHandler, resetCurrentChat } =
     useSidebarContext();
   const [chatData, setChatData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPremium, setIsPremium] = useState(false);
   const [activeTab, setActiveTab] = useState("validation");
 
   useEffect(() => {
@@ -54,32 +53,6 @@ export default function ChatPage() {
       loadChatData();
     }
   }, [params.id, router]);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("/api/user/sync", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.user) {
-            setIsPremium(result.user.planId === "premium");
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    if (user) {
-      fetchUserData();
-    }
-  }, [user]);
 
   const handleChatSelect = useCallback(
     (selectedChat) => {

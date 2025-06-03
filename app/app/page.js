@@ -10,16 +10,13 @@ import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { handleDownloadPDF as downloadPDF } from "@/lib/pdfDownloader";
-import { useUser } from "@/hooks/useUser";
-import { useUserSync } from "@/hooks/useUserSync";
-import { useUserActions } from "@/hooks/useUserActions";
+import { useUserData } from "@/hooks/useUserData";
 import { useSidebarContext } from "@/hooks/useSidebarContext";
 
 export default function AppPage() {
   const router = useRouter();
 
   const {
-    user: currentUser,
     isPremium,
     promptsUsed,
     promptsRemaining,
@@ -27,7 +24,8 @@ export default function AppPage() {
     promptsResetDate,
     isInitialized,
     refreshUserData,
-  } = useUserSync();
+    validateIdea,
+  } = useUserData();
 
   const {
     saveChatHistory,
@@ -35,8 +33,6 @@ export default function AppPage() {
     setChatSelectHandler,
     setChatDeleteHandler,
   } = useSidebarContext();
-
-  const { validateIdea } = useUserActions();
   const [idea, setIdea] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
@@ -62,7 +58,6 @@ export default function AppPage() {
     }
   }, [resetCurrentChat]);
 
-  // Set up chat handlers
   useEffect(() => {
     setChatSelectHandler(handleChatSelect);
     setChatDeleteHandler(handleChatDelete);
@@ -106,11 +101,7 @@ export default function AppPage() {
 
     try {
       const data = await validateIdea(idea);
-
       setResults(data);
-
-      // Refresh user data after successful validation to get updated prompt counts
-      await refreshUserData();
 
       let newChatId = null;
       if (saveChatHistory) {
@@ -135,11 +126,6 @@ export default function AppPage() {
   const handleUpgrade = () => {
     router.push("/app/billing");
   };
-
-  // Function to refresh data after plan changes
-  const handlePlanUpdate = useCallback(async () => {
-    await refreshUserData();
-  }, [refreshUserData]);
 
   const handleDownloadPDF = () => {
     if (!results) {
@@ -190,7 +176,6 @@ export default function AppPage() {
       className="flex-1 p-4"
     >
       <div className="max-w-6xl mx-auto">
-        {/* Show loading state while user data is being initialized */}
         {!isInitialized ? (
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center space-y-3">
