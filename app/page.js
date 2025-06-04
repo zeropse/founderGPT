@@ -26,6 +26,7 @@ import {
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export default function Home() {
   const router = useRouter();
@@ -622,6 +623,7 @@ export default function Home() {
       </section>
 
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }

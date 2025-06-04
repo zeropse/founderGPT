@@ -13,6 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export default function TermsOfService() {
   const fadeInUp = {
@@ -391,6 +392,7 @@ export default function TermsOfService() {
       </main>
 
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }

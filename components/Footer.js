@@ -2,7 +2,14 @@
 
 import BoltBadge from "./BoltBadge";
 import { motion } from "framer-motion";
-import { Twitter, Github, Instagram, Linkedin, Heart } from "lucide-react";
+import {
+  Twitter,
+  Github,
+  Instagram,
+  Linkedin,
+  Heart,
+  Laptop,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -51,7 +58,7 @@ export default function Footer() {
       whileInView="visible"
       variants={footerAnimation}
       viewport={{ once: true }}
-      className="border-t bg-background/80 backdrop-blur-sm"
+      className="border-t border-border/40 bg-gradient-to-b from-background/95 to-background backdrop-blur-lg"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {!isAppRoute && (
@@ -62,52 +69,66 @@ export default function Footer() {
             viewport={{ once: true }}
             className="py-16"
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-              <motion.div variants={linkAnimation} className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="font-bold text-2xl">FoundrGPT</h3>
-                  <p className="text-base text-muted-foreground leading-relaxed max-w-md">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20">
+              <motion.div variants={linkAnimation} className="space-y-8">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-lg">
+                      <Laptop className="h-6 w-6 text-violet-600" />
+                    </div>
+                    <h3 className="font-bold text-3xl bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                      FoundrGPT
+                    </h3>
+                  </div>
+                  <p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
                     AI-powered platform helping entrepreneurs validate, develop,
-                    and launch successful business ideas with confidence.
+                    and launch successful business ideas with confidence and
+                    precision.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <motion.div
+                  className="flex items-center gap-3 text-base text-muted-foreground p-2 bg-gradient-to-r from-red-50/50 to-pink-50/50 dark:from-red-950/20 dark:to-pink-950/20 rounded-xl border border-red-100/50 dark:border-red-900/30"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <span className="font-medium">Made with</span>
-                  <Heart
-                    size={16}
-                    className="text-red-500 fill-current animate-pulse"
-                  />
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <Heart size={18} className="text-red-500 fill-current" />
+                  </motion.div>
                   <span className="font-medium">for founders worldwide</span>
-                </div>
+                </motion.div>
               </motion.div>
 
               <motion.div
                 variants={linkAnimation}
-                className="space-y-6 lg:flex lg:flex-col lg:items-end"
+                className="space-y-8 lg:flex lg:flex-col lg:items-end"
               >
-                <div className="space-y-4 lg:text-right">
-                  <h4 className="font-semibold text-lg text-foreground">
+                <div className="space-y-6 lg:text-right">
+                  <h4 className="font-bold text-2xl text-foreground">
                     Let's Connect
                   </h4>
-                  <p className="text-sm text-muted-foreground max-w-xs lg:ml-auto">
+                  <p className="text-base text-muted-foreground max-w-sm lg:ml-auto">
                     Follow our journey and connect with the creator behind
-                    FoundrGPT
+                    FoundrGPT. Join the community of innovative founders.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 lg:justify-end">
+                <div className="flex items-center gap-4 lg:justify-end">
                   <motion.a
                     href="https://twitter.com/zer0pse"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative text-muted-foreground hover:text-white transition-all duration-300 p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 hover:from-blue-500 hover:to-blue-600 rounded-xl shadow-sm hover:shadow-md"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    className="group relative text-muted-foreground hover:text-white transition-all duration-300 p-4 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 hover:from-blue-500 hover:to-blue-600 rounded-2xl shadow-lg hover:shadow-xl"
+                    whileHover={{ scale: 1.1, rotate: -3 }}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Twitter"
                   >
-                    <Twitter size={20} />
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Twitter size={22} />
+                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                       Twitter
                     </div>
                   </motion.a>
@@ -116,13 +137,13 @@ export default function Footer() {
                     href="https://github.com/zeropse"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative text-muted-foreground hover:text-white transition-all duration-300 p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 hover:from-gray-700 hover:to-gray-900 rounded-xl shadow-sm hover:shadow-md"
-                    whileHover={{ scale: 1.05, rotate: -5 }}
+                    className="group relative text-muted-foreground hover:text-white transition-all duration-300 p-4 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 hover:from-gray-700 hover:to-gray-900 rounded-2xl shadow-lg hover:shadow-xl"
+                    whileHover={{ scale: 1.1, rotate: 3 }}
                     whileTap={{ scale: 0.95 }}
                     aria-label="GitHub"
                   >
-                    <Github size={20} />
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Github size={22} />
+                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                       GitHub
                     </div>
                   </motion.a>
@@ -131,13 +152,13 @@ export default function Footer() {
                     href="https://linkedin.com/in/zeropse"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative text-muted-foreground hover:text-white transition-all duration-300 p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 hover:from-blue-600 hover:to-blue-700 rounded-xl shadow-sm hover:shadow-md"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    className="group relative text-muted-foreground hover:text-white transition-all duration-300 p-4 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 hover:from-blue-600 hover:to-blue-700 rounded-2xl shadow-lg hover:shadow-xl"
+                    whileHover={{ scale: 1.1, rotate: -3 }}
                     whileTap={{ scale: 0.95 }}
                     aria-label="LinkedIn"
                   >
-                    <Linkedin size={20} />
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Linkedin size={22} />
+                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                       LinkedIn
                     </div>
                   </motion.a>
@@ -146,13 +167,13 @@ export default function Footer() {
                     href="https://instagram.com/zeropse"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative text-muted-foreground hover:text-white transition-all duration-300 p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 hover:from-pink-500 hover:to-purple-600 rounded-xl shadow-sm hover:shadow-md"
-                    whileHover={{ scale: 1.05, rotate: -5 }}
+                    className="group relative text-muted-foreground hover:text-white transition-all duration-300 p-4 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 hover:from-pink-500 hover:to-purple-600 rounded-2xl shadow-lg hover:shadow-xl"
+                    whileHover={{ scale: 1.1, rotate: 3 }}
                     whileTap={{ scale: 0.95 }}
                     aria-label="Instagram"
                   >
-                    <Instagram size={20} />
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Instagram size={22} />
+                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                       Instagram
                     </div>
                   </motion.a>
@@ -167,26 +188,28 @@ export default function Footer() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          className="py-6 border-t flex flex-col sm:flex-row justify-between items-center gap-4"
+          className="py-8 border-t border-border/40 flex flex-col sm:flex-row justify-between items-center gap-6"
         >
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground font-medium">
             © 2025 FoundrGPT. All rights reserved.
           </div>
 
           <div className="flex justify-center">
-            <BoltBadge />
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <BoltBadge />
+            </motion.div>
           </div>
 
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <Link
               href="/privacy"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-foreground transition-colors duration-200 font-medium"
             >
               Privacy Policy
             </Link>
             <Link
               href="/terms"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-foreground transition-colors duration-200 font-medium"
             >
               Terms of Service
             </Link>
