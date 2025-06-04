@@ -9,9 +9,12 @@ export const useUserData = () => {
   const [userData, setUserData] = useState({
     isPremium: false,
     promptsUsed: 0,
-    promptsRemaining: 2,
-    dailyPromptsLimit: 2,
+    promptsRemaining: 1,
+    dailyPromptsLimit: 1,
     promptsResetDate: null,
+    weeklyPromptsUsed: 0,
+    weeklyPromptsLimit: 4,
+    weeklyPromptsResetDate: null,
     isInitialized: false,
   });
   const fetchingRef = useRef(false);
@@ -48,14 +51,21 @@ export const useUserData = () => {
             promptsRemaining,
             dailyPromptsLimit,
             promptsResetDate,
+            weeklyPromptsUsed,
+            weeklyPromptsLimit,
+            weeklyPromptsResetDate,
           } = result.user;
 
+          const isPremiumUser = planId === "premium";
           const newUserData = {
-            isPremium: planId === "premium",
+            isPremium: isPremiumUser,
             promptsUsed: promptsUsed || 0,
-            promptsRemaining: promptsRemaining || 2,
-            dailyPromptsLimit: dailyPromptsLimit || 2,
+            promptsRemaining: promptsRemaining || (isPremiumUser ? 3 : 1),
+            dailyPromptsLimit: dailyPromptsLimit || (isPremiumUser ? 3 : 1),
             promptsResetDate: promptsResetDate || null,
+            weeklyPromptsUsed: weeklyPromptsUsed || 0,
+            weeklyPromptsLimit: weeklyPromptsLimit || (isPremiumUser ? 10 : 4),
+            weeklyPromptsResetDate: weeklyPromptsResetDate || null,
             isInitialized: true,
           };
 

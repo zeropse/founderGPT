@@ -23,6 +23,9 @@ export default function AppPage() {
     promptsRemaining,
     dailyPromptsLimit,
     promptsResetDate,
+    weeklyPromptsUsed,
+    weeklyPromptsLimit,
+    weeklyPromptsResetDate,
     isInitialized,
     validateIdea,
   } = useUserData();
@@ -89,6 +92,14 @@ export default function AppPage() {
     if (promptsRemaining <= 0) {
       toast.error(
         "You've reached your daily limit. Please upgrade or try again tomorrow."
+      );
+      return;
+    }
+
+    // Check weekly limit for free users
+    if (!isPremium && (weeklyPromptsUsed || 0) >= (weeklyPromptsLimit || 0)) {
+      toast.error(
+        "You've reached your weekly limit. Please upgrade or wait for your weekly reset."
       );
       return;
     }
@@ -239,6 +250,9 @@ export default function AppPage() {
                   promptsUsed={promptsUsed}
                   dailyPromptsLimit={dailyPromptsLimit}
                   promptsResetDate={promptsResetDate}
+                  weeklyPromptsUsed={weeklyPromptsUsed}
+                  weeklyPromptsLimit={weeklyPromptsLimit}
+                  weeklyPromptsResetDate={weeklyPromptsResetDate}
                   isPremium={isPremium}
                   handleUpgrade={handleUpgrade}
                   retryTimeout={retryTimeout}
@@ -252,6 +266,9 @@ export default function AppPage() {
                   promptsRemaining={promptsRemaining}
                   dailyPromptsLimit={dailyPromptsLimit}
                   promptsResetDate={promptsResetDate}
+                  weeklyPromptsUsed={weeklyPromptsUsed}
+                  weeklyPromptsLimit={weeklyPromptsLimit}
+                  weeklyPromptsResetDate={weeklyPromptsResetDate}
                 />
                 <PlanCard
                   isPremium={isPremium}

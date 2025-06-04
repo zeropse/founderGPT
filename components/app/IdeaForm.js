@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { LoadingSpinner, LoadingDots } from "@/components/ui/loading-spinner";
 
 export default function IdeaForm({
@@ -18,28 +18,22 @@ export default function IdeaForm({
   handleSubmit,
   isLoading,
   promptsRemaining,
-  isPremium,
+  weeklyPromptsUsed,
+  weeklyPromptsLimit,
   retryTimeout,
-  results,
-  resetForm,
-  promptsResetDate,
   enhancementStep = 0,
 }) {
-  const formatResetTime = () => {
-    if (!promptsResetDate) return "midnight UTC";
+  const isDailyLimitReached = promptsRemaining;
+  const isWeeklyLimitReached =
+    (weeklyPromptsUsed || 0) >= (weeklyPromptsLimit || 0);
 
-    const resetDate = new Date(promptsResetDate);
-    const now = new Date();
+  const canSubmit =
+    !isLoading &&
+    !isDailyLimitReached &&
+    !isWeeklyLimitReached &&
+    idea.trim() &&
+    retryTimeout === null;
 
-    const timeDiff = resetDate.getTime() - now.getTime();
-    const hoursUntilReset = Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60)));
-
-    if (hoursUntilReset <= 24) {
-      return `in ${hoursUntilReset} hour${hoursUntilReset !== 1 ? "s" : ""}`;
-    }
-
-    return resetDate.toLocaleDateString();
-  };
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>
@@ -61,70 +55,52 @@ export default function IdeaForm({
           <div className="flex flex-col space-y-3">
             <Button
               type="submit"
-              disabled={
-                isLoading ||
-                promptsRemaining === 0 ||
-                !idea.trim() ||
-                retryTimeout !== null
-              }
+              disabled={!canSubmit}
               className="w-full cursor-pointer"
             >
-              {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <LoadingSpinner size="sm" />
-                  <span>
-                    {enhancementStep === 0 && "Analyzing your idea..."}
-                    {enhancementStep === 1 && "Enhancing concept..."}
-                    {enhancementStep === 2 && "Researching market..."}
-                    {enhancementStep === 3 && "Generating features..."}
-                    {enhancementStep === 4 && "Building tech stack..."}
-                    {enhancementStep === 5 && "Creating strategies..."}
-                    {enhancementStep >= 6 && "Finalizing results..."}
-                  </span>
-                  <LoadingDots />
-                </div>
-              ) : retryTimeout !== null ? (
-                <div className="flex items-center justify-center gap-2">
-                  <LoadingSpinner size="sm" />
-                  <span>Please wait...</span>
-                </div>
-              ) : promptsRemaining === 0 ? (
-                <>
-                  <AlertCircle className="mr-2 h-4 w-4" />
-                  Daily Limit Reached
-                </>
-              ) : (
-                <>
-                  Validate Idea <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
+              {(() => {
+                if (isLoading) {
+                  return (
+                    <div className="flex items-center justify-center gap-2">
+                      <LoadingSpinner size="sm" />
+                      <span>
+                        {enhancementStep === 0 && "Analyzing your idea..."}
+                        {enhancementStep === 1 && "Enhancing concept..."}
+                        {enhancementStep === 2 && "Researching market..."}
+                        {enhancementStep === 3 && "Generating features..."}
+                        {enhancementStep === 4 && "Building tech stack..."}
+                        {enhancementStep === 5 && "Creating strategies..."}
+                        {enhancementStep >= 6 && "Finalizing results..."}
+                      </span>
+                      <LoadingDots />
+                    </div>
+                  );
+                }
+
+                if (retryTimeout !== null) {
+                  return (
+                    <div className="flex items-center justify-center gap-2">
+                      <LoadingSpinner size="sm" />
+                      <span>Please wait...</span>
+                    </div>
+                  );
+                }
+
+                if (isDailyLimitReached) {
+                  return "Daily Limit Reached";
+                }
+
+                if (isWeeklyLimitReached) {
+                  return "Weekly Limit Reached";
+                }
+
+                return (
+                  <>
+                    Validate Idea <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                );
+              })()}
             </Button>
-
-            {results && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={resetForm}
-                className="w-full cursor-pointer"
-              >
-                Start Over
-              </Button>
-            )}
-
-            {promptsRemaining === 1 && (
-              <div className="text-center space-y-2 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                <div className="flex items-center justify-center text-orange-700 dark:text-orange-300 gap-2">
-                  <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm font-medium">
-                    Last prompt remaining
-                  </span>
-                </div>
-                <div className="text-xs text-orange-600 dark:text-orange-400">
-                  Consider upgrading to Premium for {isPremium ? "more" : "5"}{" "}
-                  daily prompts
-                </div>
-              </div>
-            )}
           </div>
         </form>
       </CardContent>

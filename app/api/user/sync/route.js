@@ -72,6 +72,9 @@ export async function GET() {
         promptsRemaining: user.promptsRemaining,
         dailyPromptsLimit: user.dailyPromptsLimit,
         promptsResetDate: user.promptsResetDate,
+        weeklyPromptsUsed: user.weeklyPromptsUsed,
+        weeklyPromptsLimit: user.weeklyPromptsLimit,
+        weeklyPromptsResetDate: user.weeklyPromptsResetDate,
         isPremium: user.planId === "premium",
       },
     });

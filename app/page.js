@@ -182,12 +182,12 @@ export default function Home() {
     {
       question: "How does the free plan work?",
       answer:
-        "The free plan gives you access to basic idea enhancement features with 2 prompts per day. You can test the platform and get initial feedback on your ideas before committing to the premium plan.",
+        "The free plan gives you access to basic idea enhancement features with 1 prompt per day (max 4 per week). You can test the platform and get initial feedback on your ideas before committing to the premium plan.",
     },
     {
       question: "What additional features do I get with the premium plan?",
       answer:
-        "Premium users get 5 prompts per day (max 25 per week), plus access to market validation, MVP feature breakdown, tech stack suggestions, monetization strategies, and detailed user personas. You also get PDF export functionality.",
+        "Premium users get 3 prompts per day (max 10 per week), plus access to market validation, MVP feature breakdown, tech stack suggestions, monetization strategies, and detailed user personas. You also get PDF export functionality.",
     },
     {
       question: "How accurate is the AI validation?",
@@ -197,7 +197,7 @@ export default function Home() {
     {
       question: "Can I upgrade or downgrade my plan later?",
       answer:
-        "Yes, you can upgrade to premium at any time. The premium plan is $5/month, giving you immediate access to all premium features.",
+        "Yes, you can upgrade to premium at any time. The premium plan is $5 one-time, giving you immediate access to all premium features.",
     },
     {
       question: "How do you handle my data?",
@@ -301,7 +301,7 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>2 free prompts daily</span>
+                <span>1 free prompt daily</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />
@@ -472,7 +472,7 @@ export default function Home() {
               <ul className="space-y-4 mb-8 flex-grow">
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                  <span>2 prompts per day</span>
+                  <span>1 prompt per day (max 4/week)</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
@@ -495,9 +495,9 @@ export default function Home() {
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold mb-2">Premium Plan</h3>
                 <div className="text-5xl font-bold mb-2">
-                  $5
+                  $5{" "}
                   <span className="text-xl font-normal text-muted-foreground">
-                    /month
+                    one-time
                   </span>
                 </div>
                 <p className="text-muted-foreground">
@@ -507,7 +507,7 @@ export default function Home() {
               <ul className="space-y-4 mb-8 flex-grow">
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                  <span>5 prompts per day (max 20/week)</span>
+                  <span>3 prompts per day (max 10/week)</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />

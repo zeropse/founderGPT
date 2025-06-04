@@ -30,6 +30,9 @@ export async function POST(request) {
         promptsUsed: user.promptsUsed,
         promptsRemaining: user.promptsRemaining,
         dailyPromptsLimit: user.dailyPromptsLimit,
+        weeklyPromptsUsed: user.weeklyPromptsUsed,
+        weeklyPromptsLimit: user.weeklyPromptsLimit,
+        weeklyPromptsResetDate: user.weeklyPromptsResetDate,
         isPremium: user.planId === "premium",
       },
     });

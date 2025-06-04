@@ -12,7 +12,7 @@ import {
 import { CheckCircle, Lock, Crown } from "lucide-react";
 import Link from "next/link";
 
-export default function PlanCard({ isPremium, dailyPromptsLimit = 2 }) {
+export default function PlanCard({ isPremium, dailyPromptsLimit = 1 }) {
   return (
     <Card className="border-border shadow-sm">
       <CardHeader>

@@ -312,7 +312,7 @@ export default function BillingPage() {
                       {currentPlanState ? "$5" : "$0"}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {currentPlanState ? "per month" : "forever"}
+                      {currentPlanState ? "one-time" : "forever"}
                     </div>
                   </div>
                 </div>
