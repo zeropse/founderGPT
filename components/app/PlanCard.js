@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle, Lock } from "lucide-react";
+import { CheckCircle, Lock, Crown } from "lucide-react";
 import Link from "next/link";
 
 export default function PlanCard({ isPremium, dailyPromptsLimit = 2 }) {
@@ -20,6 +20,7 @@ export default function PlanCard({ isPremium, dailyPromptsLimit = 2 }) {
           Your Plan
           {isPremium && (
             <Badge className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0">
+              <Crown className="h-3 w-3 mr-1" />
               Premium
             </Badge>
           )}

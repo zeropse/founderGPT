@@ -275,10 +275,7 @@ export default function BillingPage() {
                     </CardDescription>
                   </div>
                   {currentPlanState ? (
-                    <Badge
-                      variant="outline"
-                      className="text-violet-600 border-violet-200"
-                    >
+                    <Badge className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0">
                       <Crown className="h-3 w-3 mr-1" />
                       Premium
                     </Badge>

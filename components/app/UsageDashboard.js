@@ -1,15 +1,9 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Crown, Calendar, Clock, TrendingUp } from "lucide-react";
+import { Crown, Calendar, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function UsageDashboard({
@@ -62,9 +56,6 @@ export default function UsageDashboard({
                 <TrendingUp className="h-5 w-5" />
                 Usage Overview
               </CardTitle>
-              <CardDescription>
-                Track your daily prompt usage and plan benefits
-              </CardDescription>
             </div>
             {isPremium && (
               <Badge className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0">
@@ -84,16 +75,7 @@ export default function UsageDashboard({
                 </span>
               </div>
             </div>
-
             <Progress value={usagePercentage} className="h-2" />
-
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{usagePercentage.toFixed(0)}% used today</span>
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                <span>Resets {formatResetTime()}</span>
-              </div>
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -128,17 +110,6 @@ export default function UsageDashboard({
                   <span className="text-red-600">Limit Reached</span>
                 )}
               </div>
-            </div>
-          </div>
-
-          <div className="bg-muted/50 rounded-lg p-3">
-            <div className="text-xs font-medium mb-1">💡 Tip</div>
-            <div className="text-xs text-muted-foreground">
-              {isPremium
-                ? "As a Premium user, you get 5 daily prompts with advanced features like market validation, MVP planning, and PDF exports."
-                : promptsRemaining > 0
-                ? "You have basic idea enhancement available. Upgrade to Premium for market validation, MVP features, and more!"
-                : "Your daily limit has been reached. Upgrade to Premium for 5 daily prompts or wait for the reset."}
             </div>
           </div>
         </CardContent>
