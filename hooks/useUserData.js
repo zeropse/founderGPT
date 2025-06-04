@@ -136,6 +136,26 @@ export const useUserData = () => {
     [fetchUserData]
   );
 
+  const fetchOrderHistory = useCallback(async () => {
+    try {
+      const response = await fetch("/api/user/orders", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.orders || [];
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch order history");
+      }
+    } catch (error) {
+      console.error("❌ Error fetching order history:", error);
+      throw error;
+    }
+  }, []);
+
   useEffect(() => {
     if (isLoaded && isSignedIn && user && !userData.isInitialized) {
       initializeUserData();
@@ -150,6 +170,7 @@ export const useUserData = () => {
     refreshUserData: () => fetchUserData(true),
     updatePlanStatus,
     validateIdea,
+    fetchOrderHistory,
   };
 };
 

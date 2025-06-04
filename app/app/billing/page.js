@@ -14,11 +14,14 @@ import { toast } from "sonner";
 import {
   CheckCircle,
   CreditCard,
-  Loader2,
   Sparkles,
   Check,
   X,
   Crown,
+  Receipt,
+  Calendar,
+  Package,
+  Trash2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useUserData } from "@/hooks/useUserData";
@@ -26,11 +29,14 @@ import { PlanLoadingSkeleton } from "@/components/ui/loading-skeletons";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function BillingPage() {
-  const { isPremium, updatePlanStatus } = useUserData();
+  const { isPremium, updatePlanStatus, fetchOrderHistory } = useUserData();
   const [isLoading, setIsLoading] = useState(false);
   const [plans, setPlans] = useState([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   const [currentPlanState, setCurrentPlanState] = useState(isPremium);
+  const [orders, setOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [showOrders, setShowOrders] = useState(false);
 
   useEffect(() => {
     setCurrentPlanState(isPremium);
@@ -96,6 +102,32 @@ export default function BillingPage() {
       if (success) {
         setCurrentPlanState(true);
         toast.success("Successfully upgraded to Premium!");
+
+        // Record the order
+        try {
+          await fetch("/api/user/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orderId: `order_${Date.now()}_${Math.random()
+                .toString(36)
+                .substr(2, 9)}`,
+              planName: "Premium Plan",
+              amount: 5.0,
+              currency: "USD",
+              status: "completed",
+              paymentMethod: "subscription",
+            }),
+          });
+
+          // Refresh orders if they are currently being shown
+          if (showOrders) {
+            const orderHistory = await fetchOrderHistory();
+            setOrders(orderHistory);
+          }
+        } catch (orderError) {
+          console.warn("Failed to record order:", orderError);
+        }
       } else {
         toast.error("Failed to upgrade. Please try again.");
       }
@@ -117,6 +149,32 @@ export default function BillingPage() {
         toast.success(
           "Successfully cancelled Premium plan. You've been downgraded to the Free plan."
         );
+
+        // Record the cancellation order
+        try {
+          await fetch("/api/user/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orderId: `cancel_${Date.now()}_${Math.random()
+                .toString(36)
+                .substr(2, 9)}`,
+              planName: "Premium Plan Cancellation",
+              amount: 0.0,
+              currency: "USD",
+              status: "cancelled",
+              paymentMethod: "subscription",
+            }),
+          });
+
+          // Refresh orders if they are currently being shown
+          if (showOrders) {
+            const orderHistory = await fetchOrderHistory();
+            setOrders(orderHistory);
+          }
+        } catch (orderError) {
+          console.warn("Failed to record cancellation order:", orderError);
+        }
       } else {
         toast.error("Failed to cancel subscription. Please try again.");
       }
@@ -126,6 +184,59 @@ export default function BillingPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFetchOrders = async () => {
+    if (showOrders) {
+      setShowOrders(false);
+      return;
+    }
+
+    setIsLoadingOrders(true);
+    try {
+      const orderHistory = await fetchOrderHistory();
+      setOrders(orderHistory);
+      setShowOrders(true);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      toast.error("Failed to load order history");
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  };
+
+  const handleClearOrderHistory = async () => {
+    try {
+      const response = await fetch("/api/user/orders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.ok) {
+        setOrders([]);
+        toast.success("Order history cleared successfully");
+      } else {
+        toast.error("Failed to clear order history");
+      }
+    } catch (error) {
+      console.error("Error clearing order history:", error);
+      toast.error("Failed to clear order history");
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatAmount = (amount, currency = "USD") => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+    }).format(amount);
   };
 
   return (
@@ -360,6 +471,175 @@ export default function BillingPage() {
                 ))
               )}
             </div>
+          </motion.div>
+
+          <motion.div variants={itemAnimation}>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Receipt className="h-5 w-5" />
+                      Order History
+                    </CardTitle>
+                    <CardDescription>
+                      View your past subscription orders and transactions
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={handleFetchOrders}
+                    variant="outline"
+                    disabled={isLoadingOrders}
+                    className="cursor-pointer"
+                  >
+                    {isLoadingOrders ? (
+                      <div className="flex items-center">
+                        <LoadingSpinner size="sm" />
+                        <span className="ml-2">Loading...</span>
+                      </div>
+                    ) : showOrders ? (
+                      "Hide Orders"
+                    ) : (
+                      "View Past Orders"
+                    )}
+                  </Button>
+                </div>
+              </CardHeader>
+
+              {showOrders && (
+                <CardContent className="pt-6">
+                  {orders.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                        <Package className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        No orders yet
+                      </h3>
+                      <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+                        When you upgrade to Premium or make purchases, your
+                        order history will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {orders.map((order, index) => (
+                        <div
+                          key={order.orderId || index}
+                          className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 transition-all hover:shadow-md hover:border-violet-200 dark:hover:border-violet-700"
+                        >
+                          <div
+                            className={`absolute left-0 top-0 h-full w-1 ${
+                              order.status === "completed"
+                                ? "bg-green-500"
+                                : order.status === "pending"
+                                ? "bg-yellow-500"
+                                : order.status === "cancelled"
+                                ? "bg-gray-400"
+                                : "bg-red-500"
+                            }`}
+                          />
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-violet-100 to-violet-200 dark:from-violet-900 dark:to-violet-800">
+                                <Crown className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                                    {order.planName}
+                                  </h4>
+                                  <Badge
+                                    variant={
+                                      order.status === "completed"
+                                        ? "default"
+                                        : order.status === "pending"
+                                        ? "secondary"
+                                        : order.status === "cancelled"
+                                        ? "outline"
+                                        : "destructive"
+                                    }
+                                    className={`text-xs ${
+                                      order.status === "completed"
+                                        ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300"
+                                        : order.status === "pending"
+                                        ? "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-300"
+                                        : order.status === "cancelled"
+                                        ? "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300"
+                                        : ""
+                                    }`}
+                                  >
+                                    {order.status.charAt(0).toUpperCase() +
+                                      order.status.slice(1)}
+                                  </Badge>
+                                </div>
+
+                                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                  <div className="flex items-center gap-1.5">
+                                    <Receipt className="h-3.5 w-3.5" />
+                                    <span className="font-mono text-xs">
+                                      {order.orderId}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <Calendar className="h-3.5 w-3.5" />
+                                    <span>{formatDate(order.timestamp)}</span>
+                                  </div>
+                                  {order.paymentMethod && (
+                                    <div className="flex items-center gap-1.5">
+                                      <CreditCard className="h-3.5 w-3.5" />
+                                      <span className="capitalize">
+                                        {order.paymentMethod}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Price */}
+                            <div className="text-right">
+                              <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                                {formatAmount(order.amount, order.currency)}
+                              </div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {order.currency?.toUpperCase() || "USD"}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {orders.length > 20 && (
+                        <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                You have {orders.length} orders in your history
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-500">
+                                Clear old orders to keep your history manageable
+                              </p>
+                            </div>
+                            <Button
+                              onClick={handleClearOrderHistory}
+                              variant="destructive"
+                              size="sm"
+                              className="cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Clear History
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              )}
+            </Card>
           </motion.div>
         </div>
       </div>
