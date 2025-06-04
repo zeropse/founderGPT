@@ -37,6 +37,13 @@ export default function PrivacyPolicy() {
     },
   };
 
+  const heroContent = {
+    title: "Your Privacy Matters",
+    subtitle:
+      "We're committed to protecting your privacy and being transparent about how we handle your data.",
+    lastUpdated: "June 2025",
+  };
+
   const privacyPrinciples = [
     {
       icon: <Shield className="h-8 w-8 text-green-500" />,
@@ -64,6 +71,156 @@ export default function PrivacyPolicy() {
     },
   ];
 
+  const privacyContent = [
+    {
+      icon: <UserCheck className="h-6 w-6 text-blue-500" />,
+      title: "Information We Collect",
+      content: [
+        {
+          type: "section",
+          heading: "Personal Information",
+          items: [
+            "Email address for account creation and communication",
+            "Name and profile information (if provided)",
+            "Payment information",
+          ],
+        },
+        {
+          type: "section",
+          heading: "Usage Data",
+          items: [
+            "Ideas and content you submit for validation",
+            "Feature usage and interaction patterns",
+          ],
+        },
+      ],
+    },
+    {
+      icon: <Database className="h-6 w-6 text-green-500" />,
+      title: "How We Use Your Information",
+      content: [
+        {
+          type: "list",
+          items: [
+            "Provide AI-powered idea validation services",
+            "Improve our platform and develop new features",
+            "Communicate with you about your account and our services",
+            "Process payments and manage subscriptions",
+            "Ensure platform security and prevent fraud",
+            "Comply with legal obligations",
+          ],
+        },
+      ],
+    },
+    {
+      icon: <Lock className="h-6 w-6 text-purple-500" />,
+      title: "Data Security & Storage",
+      content: [
+        {
+          type: "paragraph",
+          text: "We implement industry-standard security measures to protect your data:",
+        },
+        {
+          type: "list",
+          items: [
+            "End-to-end encryption for sensitive data",
+            "Secure database storage with MongoDB Atlas",
+            "Regular security audits and updates",
+            "Limited access on a need-to-know basis",
+          ],
+        },
+      ],
+    },
+    {
+      icon: <Eye className="h-6 w-6 text-orange-500" />,
+      title: "Your Rights & Choices",
+      content: [
+        {
+          type: "paragraph",
+          text: "You have the right to:",
+        },
+        {
+          type: "list",
+          items: [
+            "Access your personal data we hold",
+            "Request correction of inaccurate information",
+            "Delete your account and associated data",
+            "Object to certain data processing activities",
+          ],
+        },
+      ],
+    },
+    {
+      icon: <AlertCircle className="h-6 w-6 text-red-500" />,
+      title: "Third-Party Services",
+      content: [
+        {
+          type: "paragraph",
+          text: "We work with trusted third-party services to provide our platform:",
+        },
+        {
+          type: "services",
+          services: [
+            {
+              title: "Authentication",
+              description: "Clerk for secure user authentication",
+            },
+            {
+              title: "Database",
+              description: "MongoDB Atlas for data storage",
+            },
+          ],
+        },
+      ],
+    },
+  ];
+
+  const renderContent = (contentItem) => {
+    switch (contentItem.type) {
+      case "paragraph":
+        return <p className="text-muted-foreground">{contentItem.text}</p>;
+      case "list":
+        return (
+          <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+            {contentItem.items.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        );
+      case "section":
+        return (
+          <div>
+            <h4 className="font-semibold mb-2">{contentItem.heading}</h4>
+            {contentItem.text && (
+              <p className="text-muted-foreground mb-2">{contentItem.text}</p>
+            )}
+            {contentItem.items && (
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                {contentItem.items.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      case "services":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {contentItem.services.map((service, index) => (
+              <div key={index}>
+                <h4 className="font-semibold mb-1">{service.title}</h4>
+                <p className="text-sm text-muted-foreground">
+                  {service.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -79,23 +236,22 @@ export default function PrivacyPolicy() {
               className="space-y-6"
             >
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                Your Privacy Matters
+                {heroContent.title}
               </h1>
 
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                We're committed to protecting your privacy and being transparent
-                about how we handle your data.
+                {heroContent.subtitle}
               </p>
 
               <div className="text-sm text-muted-foreground">
-                Last updated: June 2025
+                Last updated: {heroContent.lastUpdated}
               </div>
             </motion.div>
           </div>
         </section>
 
         {/* Privacy Principles */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <section className="py-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
             <motion.div
               initial="hidden"
@@ -135,136 +291,25 @@ export default function PrivacyPolicy() {
               variants={staggerContainer}
               className="space-y-8"
             >
-              <motion.div variants={fadeInUp}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <UserCheck className="h-6 w-6 text-blue-500" />
-                      Information We Collect
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold mb-2">
-                        Personal Information
-                      </h4>
-                      <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        <li>
-                          Email address for account creation and communication
-                        </li>
-                        <li>Name and profile information (if provided)</li>
-                        <li>Payment information</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">Usage Data</h4>
-                      <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        <li>Ideas and content you submit for validation</li>
-                        <li>Feature usage and interaction patterns</li>
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div variants={fadeInUp}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Database className="h-6 w-6 text-green-500" />
-                      How We Use Your Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                      <li>Provide AI-powered idea validation services</li>
-                      <li>Improve our platform and develop new features</li>
-                      <li>
-                        Communicate with you about your account and our services
-                      </li>
-                      <li>Process payments and manage subscriptions</li>
-                      <li>Ensure platform security and prevent fraud</li>
-                      <li>Comply with legal obligations</li>
-                    </ul>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div variants={fadeInUp}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Lock className="h-6 w-6 text-purple-500" />
-                      Data Security & Storage
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-muted-foreground">
-                      We implement industry-standard security measures to
-                      protect your data:
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                      <li>End-to-end encryption for sensitive data</li>
-                      <li>Secure database storage with MongoDB Atlas</li>
-                      <li>Regular security audits and updates</li>
-                      <li>Limited access on a need-to-know basis</li>
-                    </ul>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div variants={fadeInUp}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Eye className="h-6 w-6 text-orange-500" />
-                      Your Rights & Choices
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-muted-foreground">
-                      You have the right to:
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                      <li>Access your personal data we hold</li>
-                      <li>Request correction of inaccurate information</li>
-                      <li>Delete your account and associated data</li>
-                      <li>Object to certain data processing activities</li>
-                    </ul>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div variants={fadeInUp}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <AlertCircle className="h-6 w-6 text-red-500" />
-                      Third-Party Services
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-muted-foreground">
-                      We work with trusted third-party services to provide our
-                      platform:
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-semibold mb-1">Authentication</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Clerk for secure user authentication
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-1">Database</h4>
-                        <p className="text-sm text-muted-foreground">
-                          MongoDB Atlas for data storage
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+              {privacyContent.map((section, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        {section.icon}
+                        {section.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {section.content.map((contentItem, contentIndex) => (
+                        <div key={contentIndex}>
+                          {renderContent(contentItem)}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
             </motion.div>
           </div>
         </section>
