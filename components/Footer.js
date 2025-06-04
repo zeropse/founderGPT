@@ -88,7 +88,7 @@ export default function Footer() {
                 </div>
 
                 <motion.div
-                  className="flex items-center gap-3 text-base text-muted-foreground p-2 bg-gradient-to-r from-red-50/50 to-pink-50/50 dark:from-red-950/20 dark:to-pink-950/20 rounded-xl border border-red-100/50 dark:border-red-900/30"
+                  className="flex items-center gap-3 text-base text-muted-foreground p-2"
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
