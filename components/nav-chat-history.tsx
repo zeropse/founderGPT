@@ -33,8 +33,12 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { ChatHistoryLoadingSkeleton } from "./ui/loading-skeletons";
 import { useChatHistory } from "@/hooks/useChatHistory";
 
-export const NavChatHistory = forwardRef(function NavChatHistory(
-  { onChatSelect, onChatDelete },
+interface NavChatHistoryProps {
+  onChatDelete?: (chatId: string) => void;
+}
+
+export const NavChatHistory = forwardRef<any, NavChatHistoryProps>(function NavChatHistory(
+  { onChatDelete },
   ref
 ) {
   const router = useRouter();
@@ -42,17 +46,17 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
     chatHistories,
     currentChatId,
     isLoading,
-    handleChatDelete,
+    handleChatDelete: useChatHistoryDelete,
     saveChatHistory,
     resetCurrentChat,
   } = useChatHistory();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [chatToDelete, setChatToDelete] = useState(null);
+  const [chatToDelete, setChatToDelete] = useState<{ id: string; title: string } | null>(null);
 
   useImperativeHandle(
     ref,
     () => ({
-      saveChatHistory: (idea, results) => {
+      saveChatHistory: (idea: string, results: any) => {
         return saveChatHistory(idea, results);
       },
       resetCurrentChat,
@@ -61,20 +65,20 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
     [saveChatHistory, resetCurrentChat, currentChatId]
   );
 
-  const handleDeleteClick = (chatId, chatTitle) => {
+  const handleDeleteClick = (chatId: string, chatTitle: string) => {
     setChatToDelete({ id: chatId, title: chatTitle });
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = () => {
     if (chatToDelete) {
-      handleChatDelete(chatToDelete.id, onChatDelete);
+      useChatHistoryDelete(chatToDelete.id, onChatDelete);
       setDeleteDialogOpen(false);
       setChatToDelete(null);
     }
   };
 
-  const handleChatClick = (chatId) => {
+  const handleChatClick = (chatId: string) => {
     router.push(`/app/c/${chatId}`);
   };
 
@@ -120,7 +124,7 @@ export const NavChatHistory = forwardRef(function NavChatHistory(
           {isLoading ? (
             <ChatHistoryLoadingSkeleton />
           ) : (
-            chatHistories.map((chat) => (
+            chatHistories.map((chat: any) => (
               <SidebarMenuItem key={chat.id}>
                 <SidebarMenuButton
                   asChild
