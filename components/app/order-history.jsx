@@ -92,10 +92,15 @@ export function OrderHistory({
     });
   };
 
-  const formatAmount = (amount) => {
-    return new Intl.NumberFormat("en-US", {
+  const formatAmount = (amount, currency = "USD") => {
+    const currencyCode = currency || "USD";
+    const locale = currencyCode === "INR" ? "en-IN" : "en-US";
+
+    return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: "USD",
+      currency: currencyCode,
+      minimumFractionDigits: currencyCode === "INR" ? 0 : 2,
+      maximumFractionDigits: currencyCode === "INR" ? 0 : 2,
     }).format(amount);
   };
 
@@ -240,10 +245,10 @@ export function OrderHistory({
                       {/* Price */}
                       <div className="text-right">
                         <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                          {formatAmount(order.amount)}
+                          {formatAmount(order.amount, order.currency)}
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
-                          USD
+                          {(order.currency || "USD").toUpperCase()}
                         </div>
                       </div>
                     </div>

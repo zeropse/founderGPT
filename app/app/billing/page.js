@@ -26,6 +26,10 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import RazorpayPayment from "@/components/app/razorpay-payment";
 import { CancellationDialog } from "@/components/app/cancellation-dialog";
 import { OrderHistory } from "@/components/app/order-history";
+import {
+  DynamicPricing,
+  DynamicPricingLarge,
+} from "@/components/app/dynamic-pricing";
 
 export default function BillingPage() {
   const { isPremium, updatePlanStatus, fetchOrderHistory } = useUserData();
@@ -214,9 +218,10 @@ export default function BillingPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-semibold">
-                      {currentPlanState ? "$5" : "$0"}
-                    </div>
+                    <DynamicPricing
+                      type={currentPlanState ? "premium" : "free"}
+                      showLocationIndicator={true}
+                    />
                     <div className="text-sm text-muted-foreground">
                       {currentPlanState ? "one-time" : "forever"}
                     </div>
@@ -270,12 +275,10 @@ export default function BillingPage() {
                           {plan.tagline}
                         </CardDescription>
                         <div className="mt-4">
-                          <div className="text-3xl font-bold">
-                            {plan.price}
-                            <span className="text-lg font-normal text-muted-foreground ml-1">
-                              {plan.period}
-                            </span>
-                          </div>
+                          <DynamicPricingLarge
+                            type={plan.id === "premium" ? "premium" : "free"}
+                            period={plan.period}
+                          />
                         </div>
                       </CardHeader>
 
@@ -309,7 +312,6 @@ export default function BillingPage() {
                             !currentPlanState ? (
                               <div className="space-y-4">
                                 <RazorpayPayment
-                                  amount={5}
                                   onSuccess={handlePaymentSuccess}
                                   onError={handlePaymentError}
                                   disabled={isLoading}

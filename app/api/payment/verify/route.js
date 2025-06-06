@@ -182,7 +182,7 @@ export async function POST(request) {
             orderId: razorpay_payment_id,
             razorpayOrderId: razorpay_order_id,
             amount: payment.amount / 100,
-            currency: "USD",
+            currency: order.currency || "USD",
             status: "already_processed",
           },
         });
@@ -215,11 +215,15 @@ export async function POST(request) {
 
       const userDoc = await User.findOne({ clerkId: userId });
       if (userDoc) {
+        // Get currency from the payment or order
+        const orderCurrency = order.currency || "USD";
+        const displayAmount = payment.amount / 100;
+
         const newOrder = {
           orderId: razorpay_payment_id,
           planName: "Premium Plan",
-          amount: payment.amount / 100,
-          currency: "USD",
+          amount: displayAmount,
+          currency: orderCurrency,
           status: "completed",
           paymentMethod: "razorpay",
           razorpayOrderId: razorpay_order_id,
@@ -265,7 +269,7 @@ export async function POST(request) {
         orderId: razorpay_payment_id,
         razorpayOrderId: razorpay_order_id,
         amount: payment.amount / 100,
-        currency: "USD",
+        currency: order.currency || "USD",
         method: payment.method,
         status: "verified",
         orderRecorded,

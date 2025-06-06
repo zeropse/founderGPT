@@ -34,13 +34,29 @@ export async function POST(request) {
       );
     }
 
-    const { amount } = requestData;
+    const { amount, currency = "USD", countryCode = "US" } = requestData;
 
-    if (!amount || typeof amount !== "number" || amount < 0.5) {
+    // Validate currency
+    const supportedCurrencies = ["USD", "INR"];
+    if (!supportedCurrencies.includes(currency)) {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid amount. Minimum $0.50",
+          error: `Unsupported currency: ${currency}`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Set minimum amount based on currency
+    const minimumAmount = currency === "INR" ? 1 : 0.5;
+    const currencySymbol = currency === "INR" ? "₹" : "$";
+
+    if (!amount || typeof amount !== "number" || amount < minimumAmount) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Invalid amount. Minimum ${currencySymbol}${minimumAmount}`,
         },
         { status: 400 }
       );
@@ -50,19 +66,23 @@ export async function POST(request) {
 
     const options = {
       amount: amountInSmallestUnit,
-      currency: "USD",
+      currency: currency,
       receipt: `rcpt_${userId.slice(-8)}_${Date.now().toString().slice(-8)}`,
       notes: {
         userId: userId,
         planName: "Premium Plan",
         planType: "one-time",
         originalAmount: amount,
+        currency: currency,
+        countryCode: countryCode,
         timestamp: new Date().toISOString(),
       },
       payment_capture: 1,
     };
 
-    console.log(`💳 Creating Razorpay order for user ${userId}: USD ${amount}`);
+    console.log(
+      `💳 Creating Razorpay order for user ${userId}: ${currencySymbol}${amount} (${currency})`
+    );
 
     const order = await razorpay.orders.create(options);
 
@@ -80,6 +100,11 @@ export async function POST(request) {
       key: process.env.RAZORPAY_KEY_ID,
       user: {
         id: userId,
+      },
+      metadata: {
+        countryCode,
+        originalCurrency: currency,
+        displayAmount: `${currencySymbol}${amount}`,
       },
     });
   } catch (error) {

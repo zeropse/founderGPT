@@ -42,10 +42,14 @@ export async function POST(request) {
         try {
           await UserService.updatePlanStatus(userId, true);
 
+          // Get currency from payment or order, default to USD for backwards compatibility
+          const currency = payment.currency || order?.currency || "USD";
+
           const orderData = {
             orderId: payment.id,
             planName: payment.notes.planName || "Premium Plan",
             amount: payment.amount / 100,
+            currency: currency,
             status: "completed",
             paymentMethod: "razorpay",
             razorpayOrderId: order?.id,

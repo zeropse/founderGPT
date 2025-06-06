@@ -27,6 +27,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import { DynamicPricingLarge } from "@/components/app/dynamic-pricing";
 
 export default function Home() {
   const router = useRouter();
@@ -464,8 +465,12 @@ export default function Home() {
             >
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold mb-2">Free Plan</h3>
-                <div className="text-5xl font-bold mb-2">$0</div>
-                <p className="text-muted-foreground">
+                <DynamicPricingLarge
+                  type="free"
+                  period="forever"
+                  className="text-5xl"
+                />
+                <p className="text-muted-foreground mt-2">
                   Perfect for getting started
                 </p>
               </div>
@@ -494,13 +499,8 @@ export default function Home() {
               </div>
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold mb-2">Premium Plan</h3>
-                <div className="text-5xl font-bold mb-2">
-                  $5{" "}
-                  <span className="text-xl font-normal text-muted-foreground">
-                    one-time
-                  </span>
-                </div>
-                <p className="text-muted-foreground">
+                <DynamicPricingLarge type="premium" period="one-time" />
+                <p className="text-muted-foreground mt-2">
                   Everything you need to succeed
                 </p>
               </div>

@@ -6,11 +6,13 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Crown, Shield, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
+import { getRazorpayErrorMessage } from "@/lib/utils/paymentUtils";
 import {
-  validatePaymentAmount,
-  formatCurrency,
-  getRazorpayErrorMessage,
-} from "@/lib/utils/paymentUtils";
+  detectUserLocation,
+  getCurrencyForCountry,
+  formatCurrencyAmount,
+  validatePaymentAmountByCurrency,
+} from "@/lib/utils/locationUtils";
 
 const RazorpayPayment = ({
   amount = 5,
@@ -20,24 +22,60 @@ const RazorpayPayment = ({
   className = "",
   buttonText,
   showSecurityBadge = true,
-  showPaymentInfo = true,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentState, setPaymentState] = useState("idle");
   const [validationError, setValidationError] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [currencyConfig, setCurrencyConfig] = useState(null);
+  const [localizedAmount, setLocalizedAmount] = useState(amount);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(true);
   const { user } = useUser();
   const razorpayRef = useRef(null);
   const retryCountRef = useRef(0);
   const maxRetries = 3;
 
   useEffect(() => {
-    const validation = validatePaymentAmount(amount);
-    if (!validation.isValid) {
-      setValidationError(validation.error);
-    } else {
-      setValidationError(null);
+    const initializeLocation = async () => {
+      try {
+        setIsDetectingLocation(true);
+        const location = await detectUserLocation();
+        const currency = getCurrencyForCountry(location);
+
+        setUserLocation(location);
+        setCurrencyConfig(currency);
+        setLocalizedAmount(currency.premiumPrice);
+
+        console.log(
+          `🌍 Detected location: ${location}, Currency: ${currency.code}, Amount: ${currency.premiumPrice}`
+        );
+      } catch (error) {
+        console.error("Failed to detect location:", error);
+        // Fallback to USD
+        const defaultCurrency = getCurrencyForCountry("US");
+        setCurrencyConfig(defaultCurrency);
+        setLocalizedAmount(defaultCurrency.premiumPrice);
+      } finally {
+        setIsDetectingLocation(false);
+      }
+    };
+
+    initializeLocation();
+  }, []);
+
+  useEffect(() => {
+    if (currencyConfig) {
+      const validation = validatePaymentAmountByCurrency(
+        localizedAmount,
+        currencyConfig
+      );
+      if (!validation.isValid) {
+        setValidationError(validation.error);
+      } else {
+        setValidationError(null);
+      }
     }
-  }, [amount]);
+  }, [localizedAmount, currencyConfig]);
 
   const loadRazorpayScript = useCallback(() => {
     return new Promise((resolve) => {
@@ -87,7 +125,11 @@ const RazorpayPayment = ({
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify({
+        amount: localizedAmount,
+        currency: currencyConfig?.code || "USD",
+        countryCode: userLocation || "US",
+      }),
     });
 
     if (!response.ok) {
@@ -104,7 +146,7 @@ const RazorpayPayment = ({
     }
 
     return orderData;
-  }, [amount]);
+  }, [localizedAmount, currencyConfig, userLocation]);
 
   const verifyPayment = useCallback(async (paymentResponse) => {
     const verifyResponse = await fetch("/api/payment/verify", {
@@ -137,7 +179,7 @@ const RazorpayPayment = ({
   }, []);
 
   const handlePayment = async () => {
-    if (isLoading || paymentState === "processing") {
+    if (isLoading || paymentState === "processing" || !currencyConfig) {
       return;
     }
 
@@ -309,10 +351,20 @@ const RazorpayPayment = ({
       );
     }
 
+    if (currencyConfig && localizedAmount) {
+      return (
+        <>
+          <Crown className="mr-2 h-4 w-4" />
+          Pay {formatCurrencyAmount(localizedAmount, currencyConfig)} - Upgrade
+          to Premium
+        </>
+      );
+    }
+
     return (
       <>
         <Crown className="mr-2 h-4 w-4" />
-        Pay {formatCurrency(amount)} - Upgrade to Premium
+        Upgrade to Premium
       </>
     );
   };
@@ -329,22 +381,29 @@ const RazorpayPayment = ({
       <Button
         onClick={handlePayment}
         className={`w-full bg-violet-600 hover:bg-violet-700 transition-all duration-200 cursor-pointer dark:text-white ${className}`}
-        disabled={disabled || isLoading || !!validationError}
+        disabled={
+          disabled ||
+          isLoading ||
+          !!validationError ||
+          isDetectingLocation ||
+          !currencyConfig
+        }
         size="lg"
       >
-        {getButtonContent()}
+        {isDetectingLocation ? (
+          <div className="flex items-center justify-center">
+            <LoadingSpinner size="sm" variant="white" />
+            <span className="ml-2">Detecting location...</span>
+          </div>
+        ) : (
+          getButtonContent()
+        )}
       </Button>
 
       {showSecurityBadge && (
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <Shield className="h-3 w-3 text-green-600" />
           <span>Secured by Razorpay • SSL Encrypted</span>
-        </div>
-      )}
-
-      {showPaymentInfo && (
-        <div className="text-center text-xs text-muted-foreground space-y-1">
-          <p>One-time payment • No recurring charges</p>
         </div>
       )}
     </div>
