@@ -6,7 +6,7 @@ import { LoadingSpinner, LoadingDots } from "@/components/ui/loading-spinner";
 import { Sparkles, Database, Brain, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
-const loadingMessages = [
+const defaultLoadingMessages = [
   {
     icon: <Brain className="h-5 w-5" />,
     text: "Analyzing your idea with AI...",
@@ -31,9 +31,12 @@ const loadingMessages = [
 
 export function DatabaseLoadingSkeleton({
   title = "Loading...",
+  subtitle,
   showProgress = false,
   currentStep = 0,
+  steps,
 }) {
+  const loadingMessages = steps || defaultLoadingMessages;
   const currentMessage = loadingMessages[currentStep % loadingMessages.length];
 
   return (
@@ -57,6 +60,17 @@ export function DatabaseLoadingSkeleton({
           >
             {title}
           </motion.h3>
+
+          {subtitle && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="text-sm text-muted-foreground"
+            >
+              {subtitle}
+            </motion.p>
+          )}
 
           <motion.div
             initial={{ opacity: 0 }}
