@@ -3,7 +3,7 @@ import PlanService from "../../../../lib/services/PlanService";
 
 export async function GET() {
   try {
-    // Get the authenticated user from Clerk
+    // Get the authenticated user from Clerk - moved inside the request handler
     const { userId } = await auth();
 
     if (!userId) {
