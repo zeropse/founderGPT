@@ -43,14 +43,9 @@ export async function GET(request) {
   } catch (error) {
     console.error("❌ Error in plans API:", error.message);
 
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message,
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    return Response.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    )
   }
 }
