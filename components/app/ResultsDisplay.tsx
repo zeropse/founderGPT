@@ -33,8 +33,48 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import React from "react";
 
-const PremiumLock = ({ feature }) => (
+interface UserPersona {
+  name: string;
+  painPoints: string | string[];
+  goals: string | string[];
+  solution: string | string[];
+}
+
+interface LandingPageContent {
+  headline: string;
+  subheading: string;
+  cta: string;
+  benefits?: string[];
+}
+
+interface Results {
+  enhancedIdea?: string;
+  marketValidation?: string;
+  mvpFeatures?: string;
+  techStack?: string | Record<string, any>;
+  monetization?: string;
+  landingPage?: LandingPageContent;
+  userPersonas?: UserPersona[];
+}
+
+interface ResultsDisplayProps {
+  results?: Results;
+  isPremium: boolean;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  handleDownloadPDF: () => void;
+  isLoading: boolean;
+  enhancementStep?: number;
+  isDownloadingPDF?: boolean;
+}
+
+interface PremiumLockProps {
+  feature: string;
+}
+
+const PremiumLock: React.FC<PremiumLockProps> = ({ feature }) => (
   <div className="bg-muted/50 rounded-lg p-6 text-center">
     <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
     <h3 className="font-medium text-lg mb-2">Premium Feature</h3>
@@ -49,7 +89,11 @@ const PremiumLock = ({ feature }) => (
   </div>
 );
 
-const LoadingSkeleton = ({ enhancementStep = 0 }) => {
+interface LoadingSkeletonProps {
+  enhancementStep?: number;
+}
+
+const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({ enhancementStep = 0 }) => {
   const loadingSteps = [
     {
       title: "Enhancing Your Idea",
@@ -83,7 +127,7 @@ const LoadingSkeleton = ({ enhancementStep = 0 }) => {
   );
 };
 
-const cleanMarkdownContent = (content) => {
+const cleanMarkdownContent = (content: any): string => {
   if (!content) return content;
 
   let cleaned = content;
@@ -98,7 +142,11 @@ const cleanMarkdownContent = (content) => {
   return cleaned;
 };
 
-const MarkdownContent = ({ content }) => {
+interface MarkdownContentProps {
+  content: any;
+}
+
+const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => {
   if (!content)
     return <p className="text-muted-foreground">No data available</p>;
 
@@ -178,7 +226,11 @@ const MarkdownContent = ({ content }) => {
   );
 };
 
-const TechStackDisplay = ({ techStack }) => {
+interface TechStackDisplayProps {
+  techStack: any;
+}
+
+const TechStackDisplay: React.FC<TechStackDisplayProps> = ({ techStack }) => {
   if (!techStack)
     return (
       <p className="text-muted-foreground">No tech stack data available</p>
@@ -189,7 +241,7 @@ const TechStackDisplay = ({ techStack }) => {
   }
 
   if (typeof techStack === "object" && !Array.isArray(techStack)) {
-    const techIcons = {
+    const techIcons: Record<string, React.ReactNode> = {
       frontend: <Globe className="h-5 w-5" />,
       backend: <Code className="h-5 w-5" />,
       database: <TrendingUp className="h-5 w-5" />,
@@ -243,7 +295,12 @@ const TechStackDisplay = ({ techStack }) => {
   return <MarkdownContent content={techStack} />;
 };
 
-const PersonaCard = ({ persona, index }) => {
+interface PersonaCardProps {
+  persona: UserPersona;
+  index: number;
+}
+
+const PersonaCard: React.FC<PersonaCardProps> = ({ persona, index }) => {
   const personaIcons = [
     <Users key="users-icon" className="h-5 w-5" />,
     <TrendingUp key="trending-icon" className="h-5 w-5" />,
@@ -315,7 +372,7 @@ export default function ResultsDisplay({
   isLoading,
   enhancementStep = 0,
   isDownloadingPDF = false,
-}) {
+}: ResultsDisplayProps) {
   if (isLoading) {
     return (
       <Card className="border-border shadow-md">

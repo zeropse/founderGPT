@@ -21,7 +21,18 @@ import { useUser } from "@/hooks/useUser";
 import { useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
-export function NavUser({ user: propUser }) {
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  imageUrl?: string;
+}
+
+interface NavUserProps {
+  user?: User;
+}
+
+export function NavUser({ user: propUser }: NavUserProps) {
   const { isMobile } = useSidebar();
   const { signOut, openUserProfile } = useClerk();
   const { user: currentUser, isLoaded, isSignedIn } = useUser();
@@ -64,7 +75,7 @@ export function NavUser({ user: propUser }) {
     );
   }
 
-  const getInitials = (name) => {
+  const getInitials = (name?: string): string => {
     return (
       name
         ?.split(" ")
@@ -75,15 +86,15 @@ export function NavUser({ user: propUser }) {
     );
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = (): void => {
     signOut();
   };
 
-  const handleAccountClick = () => {
+  const handleAccountClick = (): void => {
     openUserProfile();
   };
 
-  const handleBillingClick = () => {
+  const handleBillingClick = (): void => {
     router.push("/app/billing");
   };
 
