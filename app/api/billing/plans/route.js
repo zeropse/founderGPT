@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import PlanService from "../../../../lib/services/PlanService";
+import PlanService from "@/lib/services/PlanService";
 
 export async function GET(request) {
   try {
