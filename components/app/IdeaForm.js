@@ -24,6 +24,7 @@ export default function IdeaForm({
   enhancementStep = 0,
 }) {
   const isDailyLimitReached = promptsRemaining === 0;
+
   const isWeeklyLimitReached =
     (weeklyPromptsUsed || 0) >= (weeklyPromptsLimit || 0);
 
@@ -84,10 +85,6 @@ export default function IdeaForm({
                       <span>Please wait...</span>
                     </div>
                   );
-                }
-
-                if (isDailyLimitReached) {
-                  return "Daily Limit Reached";
                 }
 
                 if (isWeeklyLimitReached) {
