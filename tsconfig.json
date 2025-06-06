@@ -27,9 +27,13 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "hooks/use-toast.js",
-    "lib/utils.js",
-    "components/app/ResultsDisplay.js"
-, "components/nav-projects.js", "components/nav-user.js", "components/app-sidebar.js", "app/dashboard/page.js"  ],
+    "hooks/use-toast.ts",
+    "lib/utils.ts",
+    "components/app/ResultsDisplay.tsx",
+    "components/nav-projects.js",
+    "components/nav-user.tsx",
+    "components/app-sidebar.tsx",
+    "app/dashboard/page.js"
+  ],
   "exclude": ["node_modules"]
 }
