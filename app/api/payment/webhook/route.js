@@ -20,7 +20,6 @@ export async function POST(request) {
       );
     }
 
-    // Verify webhook signature
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
       .update(body)
@@ -33,7 +32,6 @@ export async function POST(request) {
 
     const event = JSON.parse(body);
 
-    // Handle payment.captured event
     if (event.event === "payment.captured") {
       const payment = event.payload.payment.entity;
       const order = event.payload.order?.entity;
@@ -42,22 +40,18 @@ export async function POST(request) {
         const userId = payment.notes.userId;
 
         try {
-          // Update user to premium
           await UserService.updatePlanStatus(userId, true);
 
-          // Record the order
           const orderData = {
             orderId: payment.id,
             planName: payment.notes.planName || "Premium Plan",
             amount: payment.amount / 100,
-            currency: payment.currency.toUpperCase(),
             status: "completed",
             paymentMethod: "razorpay",
             razorpayOrderId: order?.id,
             razorpayPaymentId: payment.id,
           };
 
-          // Add order to user's history
           await fetch(
             `${
               process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"

@@ -92,10 +92,10 @@ export function OrderHistory({
     });
   };
 
-  const formatAmount = (amount, currency = "USD") => {
+  const formatAmount = (amount) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: currency,
+      currency: "USD",
     }).format(amount);
   };
 
@@ -196,8 +196,8 @@ export function OrderHistory({
                                   : order.status === "pending"
                                   ? "secondary"
                                   : order.status === "cancelled"
-                                  ? "outline"
-                                  : "destructive"
+                                  ? "destructive"
+                                  : "default"
                               }
                               className={`text-xs ${
                                 order.status === "completed"
@@ -205,7 +205,7 @@ export function OrderHistory({
                                   : order.status === "pending"
                                   ? "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-300"
                                   : order.status === "cancelled"
-                                  ? "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300"
+                                  ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300"
                                   : ""
                               }`}
                             >

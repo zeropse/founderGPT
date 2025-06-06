@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import Razorpay from "razorpay";
 
+if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+  throw new Error(
+    "Missing Razorpay configuration. Please check your environment variables."
+  );
+}
+
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -13,35 +19,54 @@ export async function POST(request) {
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: "Unauthorized access" },
         { status: 401 }
       );
     }
 
-    const { amount, currency = "USD" } = await request.json();
-
-    if (!amount || amount <= 0) {
+    let requestData;
+    try {
+      requestData = await request.json();
+    } catch (error) {
       return NextResponse.json(
-        { success: false, error: "Invalid amount" },
+        { success: false, error: "Invalid JSON payload" },
         { status: 400 }
       );
     }
 
-    // Convert amount to smallest currency unit (cents for USD)
+    const { amount } = requestData;
+
+    if (!amount || typeof amount !== "number" || amount < 0.5) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid amount. Minimum $0.50",
+        },
+        { status: 400 }
+      );
+    }
+
     const amountInSmallestUnit = Math.round(amount * 100);
 
     const options = {
       amount: amountInSmallestUnit,
-      currency: currency,
-      receipt: `rcpt_${Date.now().toString().slice(-8)}`,
+      currency: "USD",
+      receipt: `rcpt_${userId.slice(-8)}_${Date.now().toString().slice(-8)}`,
       notes: {
         userId: userId,
         planName: "Premium Plan",
         planType: "one-time",
+        originalAmount: amount,
+        timestamp: new Date().toISOString(),
       },
+      payment_capture: 1,
     };
 
+    console.log(`💳 Creating Razorpay order for user ${userId}: USD ${amount}`);
+
     const order = await razorpay.orders.create(options);
+
+    console.log(`✅ Razorpay order created successfully: ${order.id}`);
 
     return NextResponse.json({
       success: true,
@@ -50,14 +75,39 @@ export async function POST(request) {
         amount: order.amount,
         currency: order.currency,
         receipt: order.receipt,
+        status: order.status,
       },
       key: process.env.RAZORPAY_KEY_ID,
+      user: {
+        id: userId,
+      },
     });
   } catch (error) {
     console.error("❌ Error creating Razorpay order:", error);
+
+    let errorMessage = "Failed to create payment order";
+    let statusCode = 500;
+
+    if (error.message.includes("network") || error.message.includes("fetch")) {
+      errorMessage = "Network error. Please try again.";
+      statusCode = 503;
+    } else if (
+      error.message.includes("unauthorized") ||
+      error.message.includes("authentication")
+    ) {
+      errorMessage = "Payment service authentication failed";
+      statusCode = 503;
+    } else if (error.statusCode) {
+      statusCode =
+        error.statusCode >= 400 && error.statusCode < 600
+          ? error.statusCode
+          : 500;
+      errorMessage = error.error?.description || error.message || errorMessage;
+    }
+
     return NextResponse.json(
-      { success: false, error: "Failed to create payment order" },
-      { status: 500 }
+      { success: false, error: errorMessage },
+      { status: statusCode }
     );
   }
 }

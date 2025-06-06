@@ -129,9 +129,6 @@ export default function BillingPage() {
                 .substr(2, 9)}`,
               planName: "Premium Plan Cancelled - Repurchase Required",
               amount: 0.0,
-              currency: "USD",
-              status: "cancelled",
-              paymentMethod: "razorpay",
             }),
           });
         } catch (orderError) {
@@ -313,8 +310,6 @@ export default function BillingPage() {
                               <div className="space-y-4">
                                 <RazorpayPayment
                                   amount={5}
-                                  currency="USD"
-                                  currencySymbol="$"
                                   onSuccess={handlePaymentSuccess}
                                   onError={handlePaymentError}
                                   disabled={isLoading}
