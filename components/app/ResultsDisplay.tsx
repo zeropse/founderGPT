@@ -708,7 +708,7 @@ export default function ResultsDisplay({
               >
                 {isDownloadingPDF ? (
                   <div className="flex items-center justify-center gap-2">
-                    <LoadingSpinner size="sm" />
+                    <LoadingSpinner size="sm" className="" />
                     <span>Generating PDF...</span>
                   </div>
                 ) : (
