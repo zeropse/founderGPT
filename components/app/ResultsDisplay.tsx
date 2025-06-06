@@ -302,9 +302,9 @@ interface PersonaCardProps {
 
 const PersonaCard: React.FC<PersonaCardProps> = ({ persona, index }) => {
   const personaIcons = [
-    <Users key="users-icon\" className=\"h-5 w-5" />,
-    <TrendingUp key="trending-icon\" className=\"h-5 w-5" />,
-    <DollarSign key="dollar-icon\" className=\"h-5 w-5" />,
+    <Users key="users-icon" className="h-5 w-5" />,
+    <TrendingUp key="trending-icon" className="h-5 w-5" />,
+    <DollarSign key="dollar-icon" className="h-5 w-5" />,
   ];
 
   // Clean the persona name from markdown formatting
@@ -708,7 +708,7 @@ export default function ResultsDisplay({
               >
                 {isDownloadingPDF ? (
                   <div className="flex items-center justify-center gap-2">
-                    <LoadingSpinner size="sm\" className="" />
+                    <LoadingSpinner size="sm" className="" />
                     <span>Generating PDF...</span>
                   </div>
                 ) : (
