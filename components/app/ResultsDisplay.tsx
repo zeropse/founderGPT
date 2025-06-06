@@ -302,9 +302,9 @@ interface PersonaCardProps {
 
 const PersonaCard: React.FC<PersonaCardProps> = ({ persona, index }) => {
   const personaIcons = [
-    <Users key="users-icon" className="h-5 w-5" />,
-    <TrendingUp key="trending-icon" className="h-5 w-5" />,
-    <DollarSign key="dollar-icon" className="h-5 w-5" />,
+    <Users key="users-icon\" className="h-5 w-5" />,
+    <TrendingUp key="trending-icon\" className="h-5 w-5" />,
+    <DollarSign key="dollar-icon\" className="h-5 w-5" />,
   ];
 
   // Clean the persona name from markdown formatting
