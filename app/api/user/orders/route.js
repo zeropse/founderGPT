@@ -44,7 +44,25 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const { userId } = await auth();
+    const authHeader = request.headers.get("authorization");
+    let userId;
+
+    // Check if it's an internal webhook call or regular auth
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      // For internal calls from webhook, the token is the userId
+      if (token.startsWith("user_")) {
+        userId = token;
+      } else {
+        // Regular Clerk auth
+        const authResult = await auth();
+        userId = authResult.userId;
+      }
+    } else {
+      // Regular Clerk auth
+      const authResult = await auth();
+      userId = authResult.userId;
+    }
 
     if (!userId) {
       return NextResponse.json(
@@ -60,6 +78,8 @@ export async function POST(request) {
       currency = "USD",
       status = "completed",
       paymentMethod,
+      razorpayOrderId,
+      razorpayPaymentId,
     } = await request.json();
 
     if (!orderId || !planName || amount === undefined) {
@@ -88,6 +108,8 @@ export async function POST(request) {
       status,
       paymentMethod,
       timestamp: new Date(),
+      ...(razorpayOrderId && { razorpayOrderId }),
+      ...(razorpayPaymentId && { razorpayPaymentId }),
     };
 
     user.orderHistory.push(newOrder);

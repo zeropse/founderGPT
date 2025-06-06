@@ -27,6 +27,8 @@ import { motion } from "framer-motion";
 import { useUserData } from "@/hooks/useUserData";
 import { PlanLoadingSkeleton } from "@/components/ui/loading-skeletons";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import RazorpayPayment from "@/components/app/razorpay-payment";
+import { CancellationDialog } from "@/components/app/cancellation-dialog";
 
 export default function BillingPage() {
   const { isPremium, updatePlanStatus, fetchOrderHistory } = useUserData();
@@ -37,6 +39,7 @@ export default function BillingPage() {
   const [orders, setOrders] = useState([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
+  const [showCancellationDialog, setShowCancellationDialog] = useState(false);
 
   useEffect(() => {
     setCurrentPlanState(isPremium);
@@ -94,52 +97,33 @@ export default function BillingPage() {
     },
   };
 
-  const handleUpgrade = async () => {
-    setIsLoading(true);
-    try {
-      const success = await updatePlanStatus(true);
+  const handlePaymentSuccess = async (paymentData) => {
+    setIsLoading(false);
+    setCurrentPlanState(true);
 
-      if (success) {
-        setCurrentPlanState(true);
-        toast.success("Successfully upgraded to Premium!");
-
-        // Record the order
-        try {
-          await fetch("/api/user/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              orderId: `order_${Date.now()}_${Math.random()
-                .toString(36)
-                .substr(2, 9)}`,
-              planName: "Premium Plan",
-              amount: 5.0,
-              currency: "USD",
-              status: "completed",
-              paymentMethod: "subscription",
-            }),
-          });
-
-          // Refresh orders if they are currently being shown
-          if (showOrders) {
-            const orderHistory = await fetchOrderHistory();
-            setOrders(orderHistory);
-          }
-        } catch (orderError) {
-          console.warn("Failed to record order:", orderError);
-        }
-      } else {
-        toast.error("Failed to upgrade. Please try again.");
+    // The payment verification already records the order, so we just need to refresh
+    if (showOrders) {
+      try {
+        const orderHistory = await fetchOrderHistory();
+        setOrders(orderHistory);
+      } catch (error) {
+        console.warn("Failed to refresh orders:", error);
       }
-    } catch (error) {
-      console.error("Upgrade error:", error);
-      toast.error("Failed to upgrade. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
+  const handlePaymentError = (error) => {
+    setIsLoading(false);
+    console.error("Payment error:", error);
+  };
+
   const handleCancel = async () => {
+    setShowCancellationDialog(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    setShowCancellationDialog(false);
+
     setIsLoading(true);
     try {
       const success = await updatePlanStatus(false);
@@ -147,7 +131,7 @@ export default function BillingPage() {
       if (success) {
         setCurrentPlanState(false);
         toast.success(
-          "Successfully cancelled Premium plan. You've been downgraded to the Free plan."
+          "Premium plan cancelled. You've been downgraded to the Free plan and will need to repurchase to access Premium features again."
         );
 
         // Record the cancellation order
@@ -159,11 +143,11 @@ export default function BillingPage() {
               orderId: `cancel_${Date.now()}_${Math.random()
                 .toString(36)
                 .substr(2, 9)}`,
-              planName: "Premium Plan Cancellation",
+              planName: "Premium Plan Cancelled - Repurchase Required",
               amount: 0.0,
               currency: "USD",
               status: "cancelled",
-              paymentMethod: "subscription",
+              paymentMethod: "razorpay",
             }),
           });
 
@@ -302,7 +286,7 @@ export default function BillingPage() {
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         {currentPlanState
-                          ? "Everything you need to succeed"
+                          ? "One-time purchase - All premium features unlocked"
                           : "Perfect for getting started"}
                       </p>
                     </div>
@@ -401,23 +385,16 @@ export default function BillingPage() {
                         <div className="pt-4">
                           {plan.id === "premium" ? (
                             !currentPlanState ? (
-                              <Button
-                                onClick={handleUpgrade}
-                                className="w-full bg-violet-600 hover:bg-violet-700 cursor-pointer"
-                                disabled={isLoading}
-                              >
-                                {isLoading ? (
-                                  <div className="flex items-center justify-center">
-                                    <LoadingSpinner size="sm" variant="white" />
-                                    <span className="ml-2">Processing...</span>
-                                  </div>
-                                ) : (
-                                  <>
-                                    <Crown className="mr-2 h-4 w-4" />
-                                    Upgrade to Premium
-                                  </>
-                                )}
-                              </Button>
+                              <div className="space-y-4">
+                                <RazorpayPayment
+                                  amount={5}
+                                  currency="USD"
+                                  currencySymbol="$"
+                                  onSuccess={handlePaymentSuccess}
+                                  onError={handlePaymentError}
+                                  disabled={isLoading}
+                                />
+                              </div>
                             ) : (
                               <div className="space-y-3">
                                 <Button
@@ -431,7 +408,7 @@ export default function BillingPage() {
                                 <Button
                                   variant="destructive"
                                   onClick={handleCancel}
-                                  className="w-full cursor-pointer"
+                                  className="w-full cursor-pointer hover:bg-red-600"
                                   disabled={isLoading}
                                   size="sm"
                                 >
@@ -446,7 +423,7 @@ export default function BillingPage() {
                                       </span>
                                     </div>
                                   ) : (
-                                    "Cancel Subscription"
+                                    "Cancel Premium"
                                   )}
                                 </Button>
                               </div>
@@ -599,10 +576,10 @@ export default function BillingPage() {
                             {/* Price */}
                             <div className="text-right">
                               <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                                {formatAmount(order.amount, order.currency)}
+                                {formatAmount(order.amount)}
                               </div>
                               <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {order.currency?.toUpperCase() || "USD"}
+                                USD
                               </div>
                             </div>
                           </div>
@@ -640,6 +617,13 @@ export default function BillingPage() {
           </motion.div>
         </div>
       </div>
+
+      <CancellationDialog
+        open={showCancellationDialog}
+        onOpenChange={setShowCancellationDialog}
+        onConfirm={handleConfirmCancel}
+        isLoading={isLoading}
+      />
     </motion.div>
   );
 }
