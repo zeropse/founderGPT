@@ -1,9 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import PlanService from "@/lib/services/PlanService";
 
+// This tells Next.js to always run this route dynamically, not statically optimize it.
+export const dynamic = "force-dynamic";
+
 export async function GET(request) {
   try {
     // Get the authenticated user from Clerk within the request handler
+    // auth() correctly uses headers internally, which are only available dynamically.
     const { userId } = await auth();
 
     if (!userId) {
