@@ -475,7 +475,7 @@ export default function BillingPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 mb-2">
                       <Receipt className="h-5 w-5" />
                       Order History
                     </CardTitle>
@@ -504,7 +504,7 @@ export default function BillingPage() {
               </CardHeader>
 
               {showOrders && (
-                <CardContent className="pt-6">
+                <CardContent className="pt-6 cursor-pointer">
                   {orders.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">

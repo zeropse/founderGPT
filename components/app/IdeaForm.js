@@ -23,7 +23,7 @@ export default function IdeaForm({
   retryTimeout,
   enhancementStep = 0,
 }) {
-  const isDailyLimitReached = promptsRemaining;
+  const isDailyLimitReached = promptsRemaining === 0;
   const isWeeklyLimitReached =
     (weeklyPromptsUsed || 0) >= (weeklyPromptsLimit || 0);
 

@@ -1,17 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Laptop } from "lucide-react";
 import { motion } from "framer-motion";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 export default function Navbar() {
-  const pathname = usePathname();
-  const isAppRoute = pathname.startsWith("/app");
-
   const navAnimation = {
     hidden: { y: -20, opacity: 0 },
     visible: {
@@ -73,36 +69,19 @@ export default function Navbar() {
             </SignedOut>
 
             <SignedIn>
-              {!isAppRoute && (
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="relative group"
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="relative group"
+              >
+                <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 to-purple-500 rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity duration-200"></div>
+                <Button
+                  className="relative hover:opacity-90 text-white transition-all duration-200 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg hover:shadow-xl border-0 px-6 py-2 rounded-lg font-medium"
+                  asChild
                 >
-                  <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 to-purple-500 rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity duration-200"></div>
-                  <Button
-                    className="relative hover:opacity-90 text-white transition-all duration-200 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg hover:shadow-xl border-0 px-6 py-2 rounded-lg font-medium"
-                    asChild
-                  >
-                    <Link href="/app">Continue to App</Link>
-                  </Button>
-                </motion.div>
-              )}
-              {isAppRoute && (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <UserButton
-                    appearance={{
-                      elements: {
-                        avatarBox:
-                          "w-8 h-8 rounded-lg hover:shadow-lg transition-shadow duration-200",
-                      },
-                    }}
-                  />
-                </motion.div>
-              )}
+                  <Link href="/app">Continue to App</Link>
+                </Button>
+              </motion.div>
             </SignedIn>
           </div>
         </div>

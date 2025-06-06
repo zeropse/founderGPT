@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
-import Navbar from "@/components/Navbar";
+import AppNavbar from "@/components/AppNavbar";
 import Footer from "@/components/Footer";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/useUser";
@@ -32,7 +32,7 @@ function AppLayoutContent({ children }) {
         />
         <SidebarInset className="flex flex-col">
           <header className="shrink-0">
-            <Navbar />
+            <AppNavbar />
           </header>
 
           <div className="flex-1">{children}</div>

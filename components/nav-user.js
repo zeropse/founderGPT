@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, CreditCard, LogOut, Settings } from "lucide-react";
+import { CreditCard, LogOut, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
