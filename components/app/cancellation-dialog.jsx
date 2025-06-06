@@ -46,37 +46,35 @@ export function CancellationDialog({
               Cancel Premium Plan
             </AlertDialogTitle>
           </div>
-          <AlertDialogDescription className="text-left space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Are you sure you want to cancel your Premium plan? This action
-              will:
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-              <li>• Immediately downgrade you to the Free plan</li>
-              <li>• Remove access to all Premium features</li>
-              <li>• Require repurchasing ($5) to regain Premium access</li>
-            </ul>
-            <p className="text-sm font-medium text-destructive">
-              This action cannot be undone.
-            </p>
+          <AlertDialogDescription className="text-left">
+            Are you sure you want to cancel your Premium plan? This action will:
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="confirm-text" className="text-sm font-medium">
-              Type <span className="font-bold text-destructive">"Cancel"</span>{" "}
-              to confirm:
-            </Label>
-            <Input
-              id="confirm-text"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              placeholder="Type Cancel here..."
-              className="w-full mt-2"
-              disabled={isLoading}
-            />
+        <div className="space-y-3 mb-4">
+          <ul className="text-sm text-muted-foreground">
+            <li>• Immediately downgrade you to the Free plan</li>
+            <li>• Remove access to all Premium features</li>
+            <li>• Require repurchasing ($5) to regain Premium access</li>
+          </ul>
+          <div className="text-sm font-medium text-destructive">
+            This action cannot be undone.
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirm-text" className="text-sm font-medium">
+            Type <span className="font-bold text-destructive">"Cancel"</span> to
+            confirm:
+          </Label>
+          <Input
+            id="confirm-text"
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder="Type Cancel here..."
+            className="w-full mt-2"
+            disabled={isLoading}
+          />
         </div>
 
         <AlertDialogFooter className="gap-2">

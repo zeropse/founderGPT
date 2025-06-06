@@ -10,6 +10,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   CreditCard,
@@ -33,6 +44,7 @@ export function OrderHistory({
   const [orders, setOrders] = useState([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
+  const [isClearingHistory, setIsClearingHistory] = useState(false);
 
   const itemAnimation = {
     hidden: { opacity: 0, y: 20 },
@@ -66,6 +78,7 @@ export function OrderHistory({
   };
 
   const handleClearOrderHistory = async () => {
+    setIsClearingHistory(true);
     try {
       const response = await fetch("/api/user/orders", {
         method: "DELETE",
@@ -81,6 +94,8 @@ export function OrderHistory({
     } catch (error) {
       console.error("Error clearing order history:", error);
       toast.error("Failed to clear order history");
+    } finally {
+      setIsClearingHistory(false);
     }
   };
 
@@ -178,7 +193,7 @@ export function OrderHistory({
                           : order.status === "pending"
                           ? "bg-yellow-500"
                           : order.status === "cancelled"
-                          ? "bg-gray-400"
+                          ? "bg-red-500"
                           : "bg-red-500"
                       }`}
                     />
@@ -194,29 +209,21 @@ export function OrderHistory({
                             <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                               {order.planName}
                             </h4>
-                            <Badge
-                              variant={
-                                order.status === "completed"
-                                  ? "default"
-                                  : order.status === "pending"
-                                  ? "secondary"
-                                  : order.status === "cancelled"
-                                  ? "destructive"
-                                  : "default"
-                              }
-                              className={`text-xs ${
-                                order.status === "completed"
-                                  ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300"
-                                  : order.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-300"
-                                  : order.status === "cancelled"
-                                  ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300"
-                                  : ""
-                              }`}
-                            >
-                              {order.status.charAt(0).toUpperCase() +
-                                order.status.slice(1)}
-                            </Badge>
+                            {order.status !== "cancelled" && (
+                              <Badge
+                                variant="outline"
+                                className={`text-xs border ${
+                                  order.status === "completed"
+                                    ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700"
+                                    : order.status === "pending"
+                                    ? "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-300 dark:border-yellow-700"
+                                    : "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700"
+                                }`}
+                              >
+                                {order.status.charAt(0).toUpperCase() +
+                                  order.status.slice(1)}
+                              </Badge>
+                            )}
                           </div>
 
                           <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
@@ -242,20 +249,22 @@ export function OrderHistory({
                         </div>
                       </div>
 
-                      {/* Price */}
                       <div className="text-right">
-                        <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                          {formatAmount(order.amount, order.currency)}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {(order.currency || "USD").toUpperCase()}
-                        </div>
+                        {order.status === "cancelled" ? (
+                          <div className="text-xl font-bold text-red-600 dark:text-red-400">
+                            Cancelled
+                          </div>
+                        ) : (
+                          <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                            {formatAmount(order.amount, order.currency)}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 ))}
 
-                {showClearButton && orders.length > maxOrdersThreshold && (
+                {showClearButton && orders.length >= maxOrdersThreshold && (
                   <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <div>
@@ -266,15 +275,52 @@ export function OrderHistory({
                           Clear old orders to keep your history manageable
                         </p>
                       </div>
-                      <Button
-                        onClick={handleClearOrderHistory}
-                        variant="destructive"
-                        size="sm"
-                        className="cursor-pointer"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Clear History
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="cursor-pointer"
+                            disabled={isClearingHistory}
+                          >
+                            {isClearingHistory ? (
+                              <div className="flex items-center">
+                                <LoadingSpinner size="sm" />
+                                <span className="ml-2">Clearing...</span>
+                              </div>
+                            ) : (
+                              <>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Clear History
+                              </>
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Clear Order History
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to clear all order history?
+                              This action cannot be undone and will permanently
+                              delete all {orders.length} orders from your
+                              history.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="cursor-pointer">
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleClearOrderHistory}
+                              className="bg-red-600 hover:bg-red-700 focus:ring-red-600 cursor-pointer"
+                            >
+                              Clear All Orders
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 )}

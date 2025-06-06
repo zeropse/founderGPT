@@ -30,6 +30,10 @@ import {
   DynamicPricing,
   DynamicPricingLarge,
 } from "@/components/app/dynamic-pricing";
+import {
+  detectUserLocation,
+  getCurrencyForCountry,
+} from "@/lib/utils/locationUtils";
 
 export default function BillingPage() {
   const { isPremium, updatePlanStatus, fetchOrderHistory } = useUserData();
@@ -120,10 +124,11 @@ export default function BillingPage() {
         setCurrentPlanState(false);
         toast.success(
           "Premium plan cancelled. You've been downgraded to the Free plan and will need to repurchase to access Premium features again."
-        );
-
-        // Record the cancellation order
+        ); // Detect user location and currency for cancellation order
         try {
+          const userLocation = await detectUserLocation();
+          const currencyConfig = getCurrencyForCountry(userLocation);
+
           await fetch("/api/user/orders", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -131,8 +136,11 @@ export default function BillingPage() {
               orderId: `cancel_${Date.now()}_${Math.random()
                 .toString(36)
                 .substr(2, 9)}`,
-              planName: "Premium Plan Cancelled - Repurchase Required",
-              amount: 0.0,
+              planName: "Premium Plan Cancelled",
+              amount: currencyConfig.premiumPrice,
+              status: "cancelled",
+              currency: currencyConfig.code,
+              paymentMethod: "cancellation",
             }),
           });
         } catch (orderError) {
