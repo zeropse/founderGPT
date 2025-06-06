@@ -1,13 +1,18 @@
 import { auth } from "@clerk/nextjs/server";
 import PlanService from "../../../../lib/services/PlanService";
 
-export async function GET() {
+export async function GET(request) {
   try {
-    // Get the authenticated user from Clerk - moved inside the request handler
+    // Get the authenticated user from Clerk within the request handler
     const { userId } = await auth();
 
     if (!userId) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
+        status: 401,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
     }
 
     // First, make sure default plans exist in the database
@@ -16,7 +21,7 @@ export async function GET() {
     // Fetch all plans from the database
     const plans = await PlanService.getAllPlans();
 
-    return Response.json({
+    return new Response(JSON.stringify({
       success: true,
       plans: plans.map((plan) => ({
         id: plan.id,
@@ -29,16 +34,23 @@ export async function GET() {
         badge: plan.badge,
         features: plan.features,
       })),
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   } catch (error) {
     console.error("❌ Error in plans API:", error.message);
 
-    return Response.json(
-      {
-        success: false,
-        error: error.message,
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message,
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
       },
-      { status: 500 }
-    );
+    });
   }
 }
