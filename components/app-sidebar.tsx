@@ -37,7 +37,7 @@ interface AppSidebarRef {
 
 export const AppSidebar = React.forwardRef<AppSidebarRef, AppSidebarProps>(
   function AppSidebar({ onChatSelect, onChatDelete, user, ...props }, ref) {
-    const chatHistoryRef = React.useRef<any>();
+    const chatHistoryRef = React.useRef<any>(null);
 
     React.useImperativeHandle(
       ref,
