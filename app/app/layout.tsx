@@ -15,9 +15,9 @@ interface AppLayoutContentProps {
   children: ReactNode;
 }
 
-function AppLayoutContent({ children }: AppLayoutContentProps): JSX.Element {
+function AppLayoutContent({ children }: AppLayoutContentProps) {
   const { user } = useUser();
-  const sidebarRef = useRef<any>();
+  const sidebarRef = useRef<any>(null);
   const { setSidebarRef, handleChatSelect, handleChatDelete } =
     useSidebarContext();
 
@@ -52,7 +52,7 @@ interface AppLayoutProps {
   children: ReactNode;
 }
 
-export default function AppLayout({ children }: AppLayoutProps): JSX.Element {
+export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <CustomSidebarProvider>
       <AppLayoutContent>{children}</AppLayoutContent>

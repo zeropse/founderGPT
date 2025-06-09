@@ -14,7 +14,7 @@ import { cachedFetch } from "@/lib/apiCache";
 import { DatabaseLoadingSkeleton } from "@/components/ui/loading-skeletons";
 import { ChatHistory, LoadingMessage } from "@/types";
 
-export default function ChatPage(): JSX.Element {
+export default function ChatPage() {
   const router = useRouter();
   const params = useParams();
   const { user, isPremium } = useUserData();

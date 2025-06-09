@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 
 type Theme = "light" | "dark" | "system";
 
@@ -22,7 +28,7 @@ export function ThemeProvider({
   defaultTheme = "light",
   storageKey = "theme",
   ...props
-}: ThemeProviderProps): JSX.Element {
+}: ThemeProviderProps): React.ReactElement {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
 
   useEffect(() => {

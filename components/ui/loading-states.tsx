@@ -22,7 +22,7 @@ interface APIRequestLoadingProps {
 }
 
 interface ProgressiveLoadingProps {
-  steps?: Array<{ label: string; icon?: JSX.Element }>;
+  steps?: Array<{ label: string; icon?: React.ReactElement }>;
   currentStep?: number;
   title?: string;
   subtitle?: string;

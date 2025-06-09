@@ -16,7 +16,7 @@ import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 
 interface KeyTerm {
-  icon: JSX.Element;
+  icon: React.ReactElement;
   title: string;
   description: string;
 }
@@ -29,12 +29,12 @@ interface ContentSection {
 }
 
 interface TermsContentItem {
-  icon: JSX.Element;
+  icon: React.ReactElement;
   title: string;
   content: ContentSection[];
 }
 
-export default function TermsOfService(): JSX.Element {
+export default function TermsOfService() {
   const fadeInUp = {
     hidden: { opacity: 0, y: 60 },
     visible: {
@@ -283,7 +283,9 @@ export default function TermsOfService(): JSX.Element {
     },
   ];
 
-  const renderContent = (contentItem: ContentSection): JSX.Element | null => {
+  const renderContent = (
+    contentItem: ContentSection
+  ): React.ReactElement | null => {
     switch (contentItem.type) {
       case "paragraph":
         return <p className="text-muted-foreground">{contentItem.text}</p>;

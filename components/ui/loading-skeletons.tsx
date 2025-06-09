@@ -7,7 +7,7 @@ import { Sparkles, Database, Brain, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface LoadingMessage {
-  icon: JSX.Element;
+  icon: React.ReactElement;
   text: string;
   subtext: string;
 }

@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function Footer(): JSX.Element {
+export default function Footer() {
   const pathname = usePathname();
   const isAppRoute = pathname.startsWith("/app");
 

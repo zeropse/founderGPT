@@ -197,7 +197,7 @@ export type PaymentState =
   | "error";
 
 export interface LoadingMessage {
-  icon: JSX.Element;
+  icon: React.ReactElement;
   text: string;
   subtext: string;
 }

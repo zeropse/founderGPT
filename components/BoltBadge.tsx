@@ -1,6 +1,6 @@
 import { Zap } from "lucide-react";
 
-export default function BoltBadge(): JSX.Element {
+export default function BoltBadge() {
   return (
     <a
       href="https://bolt.new"

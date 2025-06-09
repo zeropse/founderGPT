@@ -28,6 +28,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import { DynamicPricingLarge } from "@/components/app/dynamic-pricing";
+import { ReactElement } from "react";
 
 interface MousePosition {
   x: number;
@@ -35,7 +36,7 @@ interface MousePosition {
 }
 
 interface Feature {
-  icon: JSX.Element;
+  icon: ReactElement;
   title: string;
   description: string;
   premium?: boolean;
@@ -45,7 +46,7 @@ interface ProcessStep {
   step: string;
   title: string;
   description: string;
-  icon: JSX.Element;
+  icon: ReactElement;
 }
 
 interface FAQ {
@@ -53,9 +54,12 @@ interface FAQ {
   answer: string;
 }
 
-export default function Home(): JSX.Element {
+export default function Home() {
   const router = useRouter();
-  const [mousePosition, setMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
+  const [mousePosition, setMousePosition] = useState<MousePosition>({
+    x: 0,
+    y: 0,
+  });
 
   const scrolltoHowItWorks = (): void => {
     document

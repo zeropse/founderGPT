@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 
-export default function GetStartedPage(): JSX.Element {
+export default function GetStartedPage() {
   const containerAnimation = {
     hidden: { opacity: 0 },
     visible: {

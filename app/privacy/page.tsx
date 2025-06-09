@@ -15,7 +15,7 @@ import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 
 interface PrivacyPrinciple {
-  icon: JSX.Element;
+  icon: React.ReactElement;
   title: string;
   description: string;
 }
@@ -29,7 +29,7 @@ interface ContentSection {
 }
 
 interface PrivacyContentItem {
-  icon: JSX.Element;
+  icon: React.ReactElement;
   title: string;
   content: ContentSection[];
 }
@@ -43,7 +43,7 @@ interface ServicesSection extends ContentSection {
   services?: ServiceItem[];
 }
 
-export default function PrivacyPolicy(): JSX.Element {
+export default function PrivacyPolicy() {
   const fadeInUp = {
     hidden: { opacity: 0, y: 60 },
     visible: {
@@ -207,7 +207,7 @@ export default function PrivacyPolicy(): JSX.Element {
 
   const renderContent = (
     contentItem: ContentSection | ServicesSection
-  ): JSX.Element | null => {
+  ): React.ReactElement | null => {
     switch (contentItem.type) {
       case "paragraph":
         return <p className="text-muted-foreground">{contentItem.text}</p>;

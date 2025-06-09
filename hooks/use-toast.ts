@@ -5,7 +5,11 @@ import * as React from "react";
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
 
-type ToastActionType = "ADD_TOAST" | "UPDATE_TOAST" | "DISMISS_TOAST" | "REMOVE_TOAST";
+type ToastActionType =
+  | "ADD_TOAST"
+  | "UPDATE_TOAST"
+  | "DISMISS_TOAST"
+  | "REMOVE_TOAST";
 
 interface Toast {
   id: string;
@@ -41,7 +45,11 @@ interface RemoveToastAction {
   toastId?: string;
 }
 
-type ToastAction = AddToastAction | UpdateToastAction | DismissToastAction | RemoveToastAction;
+type ToastAction =
+  | AddToastAction
+  | UpdateToastAction
+  | DismissToastAction
+  | RemoveToastAction;
 
 const actionTypes: Record<ToastActionType, ToastActionType> = {
   ADD_TOAST: "ADD_TOAST",

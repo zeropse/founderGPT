@@ -5,7 +5,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { motion } from "framer-motion";
 import { SignedIn, UserButton } from "@clerk/nextjs";
 
-export default function AppNavbar(): JSX.Element {
+export default function AppNavbar() {
   const navAnimation = {
     hidden: { y: -20, opacity: 0 },
     visible: {

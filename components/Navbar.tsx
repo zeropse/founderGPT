@@ -7,7 +7,7 @@ import { Laptop } from "lucide-react";
 import { motion } from "framer-motion";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 
-export default function Navbar(): JSX.Element {
+export default function Navbar() {
   const navAnimation = {
     hidden: { y: -20, opacity: 0 },
     visible: {

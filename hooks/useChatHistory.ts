@@ -7,9 +7,15 @@ interface UseChatHistoryReturn {
   chatHistories: ChatHistory[];
   currentChatId: string | null;
   isLoading: boolean;
-  handleChatSelect: (chatId: string, onSelect?: (chat: ChatHistory) => void) => void;
+  handleChatSelect: (
+    chatId: string,
+    onSelect?: (chat: ChatHistory) => void
+  ) => void;
   handleChatDelete: (chatId: string, onDelete?: () => void) => Promise<void>;
-  saveChatHistory: (idea: string, results: ValidationResults) => Promise<string | null>;
+  saveChatHistory: (
+    idea: string,
+    results: ValidationResults
+  ) => Promise<string | null>;
   resetCurrentChat: () => void;
   refetchChats: () => Promise<void>;
 }
@@ -55,7 +61,10 @@ export function useChatHistory(): UseChatHistoryReturn {
     fetchChats();
   }, []);
 
-  const handleChatSelect = (chatId: string, onSelect?: (chat: ChatHistory) => void): void => {
+  const handleChatSelect = (
+    chatId: string,
+    onSelect?: (chat: ChatHistory) => void
+  ): void => {
     const selectedChat = chatHistories.find((chat) => chat.id === chatId);
     if (selectedChat && onSelect) {
       setCurrentChatId(chatId);
@@ -64,7 +73,10 @@ export function useChatHistory(): UseChatHistoryReturn {
     }
   };
 
-  const handleChatDelete = async (chatId: string, onDelete?: () => void): Promise<void> => {
+  const handleChatDelete = async (
+    chatId: string,
+    onDelete?: () => void
+  ): Promise<void> => {
     try {
       const response = await fetch(`/api/chats/${chatId}`, {
         method: "DELETE",
