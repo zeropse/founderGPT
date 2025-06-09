@@ -19,6 +19,12 @@ import {
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner, LoadingDots } from "@/components/ui/loading-spinner";
+import {
+  ValidationResults,
+  LandingPageContent,
+  UserPersona,
+  LoadingMessage,
+} from "@/types";
 import { DatabaseLoadingSkeleton } from "@/components/ui/loading-skeletons";
 import { IdeaAnalysisLoading } from "@/components/ui/loading-states";
 import {
@@ -35,32 +41,8 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import React from "react";
 
-interface UserPersona {
-  name: string;
-  painPoints: string | string[];
-  goals: string | string[];
-  solution: string | string[];
-}
-
-interface LandingPageContent {
-  headline: string;
-  subheading: string;
-  cta: string;
-  benefits?: string[];
-}
-
-interface Results {
-  enhancedIdea?: string;
-  marketValidation?: string;
-  mvpFeatures?: string;
-  techStack?: string | Record<string, any>;
-  monetization?: string;
-  landingPage?: LandingPageContent;
-  userPersonas?: UserPersona[];
-}
-
 interface ResultsDisplayProps {
-  results?: Results;
+  results?: ValidationResults;
   isPremium: boolean;
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -93,26 +75,28 @@ interface LoadingSkeletonProps {
   enhancementStep?: number;
 }
 
-const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({ enhancementStep = 0 }) => {
-  const loadingSteps = [
+const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
+  enhancementStep = 0,
+}) => {
+  const loadingSteps: LoadingMessage[] = [
     {
-      title: "Enhancing Your Idea",
-      subtitle: "AI is analyzing your concept for clarity and market fit",
+      text: "Enhancing Your Idea",
+      subtext: "AI is analyzing your concept for clarity and market fit",
       icon: <Sparkles className="h-8 w-8 text-violet-500" />,
     },
     {
-      title: "Market Research",
-      subtitle: "Gathering competitive intelligence and market trends",
+      text: "Market Research",
+      subtext: "Gathering competitive intelligence and market trends",
       icon: <TrendingUp className="h-8 w-8 text-blue-500" />,
     },
     {
-      title: "Technical Analysis",
-      subtitle: "Evaluating technology stack and development requirements",
+      text: "Technical Analysis",
+      subtext: "Evaluating technology stack and development requirements",
       icon: <Code className="h-8 w-8 text-green-500" />,
     },
     {
-      title: "Business Planning",
-      subtitle: "Creating monetization strategies and user personas",
+      text: "Business Planning",
+      subtext: "Creating monetization strategies and user personas",
       icon: <DollarSign className="h-8 w-8 text-orange-500" />,
     },
   ];
@@ -708,7 +692,7 @@ export default function ResultsDisplay({
               >
                 {isDownloadingPDF ? (
                   <div className="flex items-center justify-center gap-2">
-                    <LoadingSpinner size="sm\" className="" />
+                    <LoadingSpinner size="sm" className="" />
                     <span>Generating PDF...</span>
                   </div>
                 ) : (

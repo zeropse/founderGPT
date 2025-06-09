@@ -92,7 +92,7 @@ export interface Order {
   planName: string;
   amount: number;
   currency?: string;
-  status: 'pending' | 'completed' | 'cancelled' | 'refunded';
+  status: "pending" | "completed" | "cancelled" | "refunded";
   paymentMethod?: string;
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
@@ -172,12 +172,32 @@ export interface BaseComponentProps {
 }
 
 export interface LoadingProps {
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'white' | 'destructive';
+  size?: "sm" | "md" | "lg";
+  variant?: "default" | "white" | "destructive";
 }
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
+  size?: "default" | "sm" | "lg" | "icon";
   asChild?: boolean;
+}
+
+export type PaymentState =
+  | "idle"
+  | "loading"
+  | "processing"
+  | "success"
+  | "error";
+
+export interface LoadingMessage {
+  icon: JSX.Element;
+  text: string;
+  subtext: string;
 }

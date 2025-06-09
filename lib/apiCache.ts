@@ -37,18 +37,24 @@ class APICache {
   }
 
   clear(urlPattern: string): void {
-    for (const [key] of this.cache) {
+    const keysToDelete: string[] = [];
+    this.cache.forEach((_, key) => {
       if (key.includes(urlPattern)) {
-        this.cache.delete(key);
+        keysToDelete.push(key);
       }
-    }
+    });
+    keysToDelete.forEach((key) => this.cache.delete(key));
   }
 
   clearAll(): void {
     this.cache.clear();
   }
 
-  async fetch<T = any>(url: string, options: RequestInit = {}, maxAge: number = 30000): Promise<T> {
+  async fetch<T = any>(
+    url: string,
+    options: RequestInit = {},
+    maxAge: number = 30000
+  ): Promise<T> {
     const key = this.generateKey(url, options);
 
     const cached = this.get<T>(url, options, maxAge);

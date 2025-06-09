@@ -80,10 +80,7 @@ export const AppSidebar = React.forwardRef<AppSidebarRef, AppSidebarProps>(
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
-          <NavChatHistory
-            ref={chatHistoryRef}
-            onChatDelete={onChatDelete}
-          />
+          <NavChatHistory ref={chatHistoryRef} onChatDelete={onChatDelete} />
         </SidebarContent>
         <SidebarFooter>
           <NavUser user={user} />

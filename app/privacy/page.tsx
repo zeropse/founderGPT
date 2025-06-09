@@ -25,6 +25,7 @@ interface ContentSection {
   heading?: string;
   text?: string;
   items?: string[];
+  services?: ServiceItem[];
 }
 
 interface PrivacyContentItem {
@@ -204,7 +205,9 @@ export default function PrivacyPolicy(): JSX.Element {
     },
   ];
 
-  const renderContent = (contentItem: ContentSection | ServicesSection): JSX.Element | null => {
+  const renderContent = (
+    contentItem: ContentSection | ServicesSection
+  ): JSX.Element | null => {
     switch (contentItem.type) {
       case "paragraph":
         return <p className="text-muted-foreground">{contentItem.text}</p>;

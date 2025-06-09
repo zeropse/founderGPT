@@ -148,7 +148,10 @@ export class UserService {
     }
   }
 
-  static async updatePlanStatus(clerkId: string, isPremium: boolean): Promise<UserDocument> {
+  static async updatePlanStatus(
+    clerkId: string,
+    isPremium: boolean
+  ): Promise<UserDocument> {
     try {
       await connectDB();
       const planId = isPremium ? "premium" : "free";
@@ -194,7 +197,9 @@ export class UserService {
     }
   }
 
-  static async decrementPromptsRemaining(clerkId: string): Promise<UserDocument> {
+  static async decrementPromptsRemaining(
+    clerkId: string
+  ): Promise<UserDocument> {
     try {
       await connectDB();
 
@@ -265,15 +270,20 @@ export class UserService {
 
       if (!user) throw new Error("User not found");
 
-      return user.chatHistory.map(chat => ({
-        id: chat.id,
-        title: chat.title,
-        idea: chat.idea,
-        results: chat.results,
-        timestamp: chat.timestamp.toISOString(),
-      })) || [];
+      return (
+        user.chatHistory.map((chat: any) => ({
+          id: chat.id,
+          title: chat.title,
+          idea: chat.idea,
+          results: chat.results,
+          timestamp: chat.timestamp.toISOString(),
+        })) || []
+      );
     } catch (error) {
-      console.error("❌ Error fetching chat history:", (error as Error).message);
+      console.error(
+        "❌ Error fetching chat history:",
+        (error as Error).message
+      );
       throw error;
     }
   }
@@ -319,14 +329,17 @@ export class UserService {
     }
   }
 
-  static async getChatById(clerkId: string, chatId: string): Promise<ChatHistory> {
+  static async getChatById(
+    clerkId: string,
+    chatId: string
+  ): Promise<ChatHistory> {
     try {
       await connectDB();
       const user = await User.findOne({ clerkId });
 
       if (!user) throw new Error("User not found");
 
-      const chat = user.chatHistory?.find((c) => c.id === chatId);
+      const chat = user.chatHistory?.find((c: any) => c.id === chatId);
 
       if (!chat) throw new Error("Chat not found");
 
@@ -343,14 +356,19 @@ export class UserService {
     }
   }
 
-  static async deleteChatHistory(clerkId: string, chatId: string): Promise<boolean> {
+  static async deleteChatHistory(
+    clerkId: string,
+    chatId: string
+  ): Promise<boolean> {
     try {
       await connectDB();
       const user = await User.findOne({ clerkId });
 
       if (!user) throw new Error("User not found");
 
-      const chatIndex = user.chatHistory?.findIndex((c) => c.id === chatId);
+      const chatIndex = user.chatHistory?.findIndex(
+        (c: any) => c.id === chatId
+      );
 
       if (chatIndex === -1) throw new Error("Chat not found");
 
