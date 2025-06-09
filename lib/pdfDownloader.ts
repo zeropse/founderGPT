@@ -173,7 +173,26 @@ export const handleDownloadPDF = (
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
     doc.text("Enhanced Idea Report", margin, yPosition);
-    yPosition += 20;
+    yPosition += 15;
+
+    // USER PROMPT - Subheading
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "normal");
+    if (results.userPrompt) {
+      doc.text("Original Idea:", margin, yPosition);
+      yPosition += 8;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "italic");
+      yPosition = addWrappedText(
+        doc,
+        `"${results.userPrompt}"`,
+        margin,
+        yPosition,
+        maxWidth,
+        5
+      );
+    }
+    yPosition += 15;
 
     // Add generation date
     doc.setFontSize(10);

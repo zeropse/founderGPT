@@ -222,7 +222,6 @@ export default function ChatPage() {
 
           <div className="bg-card rounded-lg p-6 border">
             <h1 className="text-2xl font-bold mb-2">{chatData.title}</h1>
-            <p className="text-muted-foreground mb-4">{chatData.idea}</p>
             {chatData.timestamp && (
               <p className="text-sm text-muted-foreground">
                 Created on{" "}

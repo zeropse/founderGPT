@@ -33,6 +33,7 @@ export interface ChatHistory {
 }
 
 export interface ValidationResults {
+  userPrompt?: string;
   enhancedIdea?: string;
   marketValidation?: string[] | string;
   mvpFeatures?: string[] | string;

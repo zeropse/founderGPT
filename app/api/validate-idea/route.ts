@@ -430,6 +430,7 @@ export async function POST(req: NextRequest) {
     }
 
     const results: any = {
+      userPrompt: trimmedIdea,
       enhancedIdea,
       marketValidation: null,
       mvpFeatures: null,

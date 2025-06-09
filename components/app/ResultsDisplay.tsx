@@ -16,17 +16,10 @@ import {
   RefreshCw,
   Activity,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { LoadingSpinner, LoadingDots } from "@/components/ui/loading-spinner";
-import {
-  ValidationResults,
-  LandingPageContent,
-  UserPersona,
-  LoadingMessage,
-} from "@/types";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ValidationResults, UserPersona, LoadingMessage } from "@/types";
 import { DatabaseLoadingSkeleton } from "@/components/ui/loading-skeletons";
-import { IdeaAnalysisLoading } from "@/components/ui/loading-states";
 import {
   Card,
   CardContent,
