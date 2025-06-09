@@ -46,10 +46,13 @@ function validateInput(idea: string): string {
 
 function validateEnvironment() {
   if (!process.env.OPENROUTER_API_KEY) {
+    console.error("❌ OPENROUTER_API_KEY environment variable is missing");
     throw new ConfigError(
-      "Missing required environment variable: OPENROUTER_API_KEY"
+      "Missing required environment variable: OPENROUTER_API_KEY. Please check your deployment configuration."
     );
   }
+
+  console.log("✅ OPENROUTER_API_KEY is configured");
 }
 
 class ValidationError extends Error {
@@ -97,6 +100,10 @@ class OpenRouterClient {
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
     try {
+      console.log(
+        `🔄 Making OpenRouter API request (attempt ${retryCount + 1})`
+      );
+
       const response = await fetch(API_CONFIG.baseUrl, {
         method: "POST",
         headers: {
@@ -126,6 +133,8 @@ class OpenRouterClient {
 
       clearTimeout(timeoutId);
 
+      console.log(`📡 OpenRouter API response status: ${response.status}`);
+
       if (!response.ok) {
         await this.handleAPIError(response, prompt, retryCount);
         return null;
@@ -134,16 +143,19 @@ class OpenRouterClient {
       const data = await response.json();
 
       if (!data?.choices?.[0]?.message?.content) {
+        console.error("❌ Invalid API response format:", data);
         throw new APIError(
           "Invalid API response format: Missing required fields"
         );
       }
 
+      console.log("✅ OpenRouter API request successful");
       return data.choices[0].message.content.trim();
     } catch (error: unknown) {
       clearTimeout(timeoutId);
 
       if (error instanceof Error && error.name === "AbortError") {
+        console.error("⏰ Request timed out");
         throw new APIError("Request timed out. Please try again.", 408);
       }
 
@@ -153,7 +165,7 @@ class OpenRouterClient {
 
       if (retryCount < API_CONFIG.maxRetries) {
         console.log(
-          `Retrying request (attempt ${retryCount + 1}/${
+          `🔄 Retrying request (attempt ${retryCount + 1}/${
             API_CONFIG.maxRetries
           })`
         );
@@ -163,6 +175,7 @@ class OpenRouterClient {
 
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
+      console.error("🌐 Network error:", errorMessage);
       throw new APIError(`Network error: ${errorMessage}`);
     }
   }
@@ -391,43 +404,67 @@ class DataProcessor {
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("🚀 Starting idea validation request");
+
     const { userId } = await auth();
 
     if (!userId) {
+      console.log("❌ Unauthorized request - no userId");
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    console.log("✅ User authenticated:", userId);
 
     const body = await req.json();
     const { idea } = body;
 
+    console.log("📝 Idea received, length:", idea?.length || 0);
+
     const trimmedIdea = validateInput(idea);
+    console.log("✅ Input validation passed");
+
     validateEnvironment();
+    console.log("✅ Environment validation passed");
 
     const user = await UserService.getUserByClerkId(userId);
 
     if (!user) {
+      console.log("❌ User not found in database");
       throw new ValidationError(
         "User not found. Please refresh and try again."
       );
     }
 
+    console.log("✅ User found:", {
+      id: user._id,
+      promptsRemaining: user.promptsRemaining,
+      planId: user.planId,
+    });
+
     if (user.promptsRemaining <= 0) {
+      console.log("❌ User exceeded daily limit");
       throw new ValidationError(
         "You've reached your daily limit. Please upgrade or try again tomorrow."
       );
     }
 
     const isPremium = user.planId === "premium";
+    console.log("💎 User premium status:", isPremium);
 
     await UserService.decrementPromptsRemaining(userId);
+    console.log("✅ Prompts decremented");
 
     const client = new OpenRouterClient(process.env.OPENROUTER_API_KEY!);
+    console.log("🤖 OpenRouter client initialized");
 
     const enhancedIdea = await client.makeRequest(PROMPTS.enhance(trimmedIdea));
 
     if (!enhancedIdea) {
+      console.log("❌ Failed to enhance idea");
       throw new APIError("Failed to enhance the idea. Please try again.");
     }
+
+    console.log("✅ Idea enhanced successfully");
 
     const results: any = {
       userPrompt: trimmedIdea,
@@ -442,7 +479,7 @@ export async function POST(req: NextRequest) {
 
     if (isPremium) {
       try {
-        console.log("Processing premium features...");
+        console.log("🔄 Processing premium features...");
 
         const premiumPromises = [
           client.makeRequest(PROMPTS.marketValidation(enhancedIdea)),
@@ -461,6 +498,15 @@ export async function POST(req: NextRequest) {
           landingPage,
           userPersonas,
         ] = await Promise.allSettled(premiumPromises);
+
+        console.log("📊 Premium features processing results:", {
+          marketValidation: marketValidation.status,
+          mvpFeatures: mvpFeatures.status,
+          techStack: techStack.status,
+          monetization: monetization.status,
+          landingPage: landingPage.status,
+          userPersonas: userPersonas.status,
+        });
 
         if (marketValidation.status === "fulfilled" && marketValidation.value) {
           results.marketValidation = DataProcessor.processBulletPoints(
@@ -507,11 +553,24 @@ export async function POST(req: NextRequest) {
 
         if (failedFeatures.length > 0) {
           console.warn(
-            `${failedFeatures.length} premium features failed to process`
+            `⚠️ ${failedFeatures.length} premium features failed to process:`,
+            failedFeatures.map((f, i) => ({
+              feature: [
+                "marketValidation",
+                "mvpFeatures",
+                "techStack",
+                "monetization",
+                "landingPage",
+                "userPersonas",
+              ][i],
+              reason: f.status === "rejected" ? f.reason : "unknown",
+            }))
           );
+        } else {
+          console.log("✅ All premium features processed successfully");
         }
       } catch (premiumError: unknown) {
-        console.error("Error processing premium features:", premiumError);
+        console.error("❌ Error processing premium features:", premiumError);
         if (
           premiumError instanceof APIError &&
           premiumError.statusCode === 429
@@ -528,12 +587,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    console.log("Request processed successfully");
+    console.log("✅ Request processed successfully");
     return Response.json(results);
   } catch (error: unknown) {
-    console.error("Error processing request:", error);
+    console.error("❌ Error processing request:", error);
+
+    // Log detailed error information for debugging
+    if (error instanceof Error) {
+      console.error("Error details:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      });
+    }
 
     if (error instanceof ValidationError) {
+      console.log("🚫 Validation error:", error.message);
       return Response.json(
         { error: error.message, type: "validation_error" },
         { status: error.statusCode }
@@ -541,26 +610,33 @@ export async function POST(req: NextRequest) {
     }
 
     if (error instanceof ConfigError) {
+      console.log("⚙️ Configuration error:", error.message);
       return Response.json(
         {
           error: "Server configuration error. Please contact support.",
           type: "config_error",
+          details:
+            process.env.NODE_ENV === "development" ? error.message : undefined,
         },
         { status: 500 }
       );
     }
 
     if (error instanceof APIError) {
+      console.log("🌐 API error:", error.message);
       return Response.json(
         { error: error.message, type: "api_error" },
         { status: error.statusCode }
       );
     }
 
+    console.log("🤔 Unknown error type");
     return Response.json(
       {
         error: "An unexpected error occurred. Please try again.",
         type: "unknown_error",
+        details:
+          process.env.NODE_ENV === "development" ? String(error) : undefined,
       },
       { status: 500 }
     );

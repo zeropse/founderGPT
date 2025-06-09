@@ -134,24 +134,40 @@ export const useUserData = (): UseUserDataReturn => {
   const validateIdea = useCallback(
     async (idea: string): Promise<ValidationResults> => {
       try {
+        console.log("🚀 Starting idea validation...");
         const response = await fetch("/api/validate-idea", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ idea }),
         });
 
+        console.log("📡 API Response Status:", response.status);
+
         if (response.ok) {
           const data = await response.json();
+          console.log("✅ Validation successful");
           apiCache.clear("/api/user/sync");
           await fetchUserData(true);
           return data;
         } else {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to validate idea");
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage =
+            errorData.error ||
+            `HTTP ${response.status}: ${response.statusText}`;
+          console.error("❌ API Error Details:", {
+            status: response.status,
+            statusText: response.statusText,
+            errorData,
+            errorMessage,
+          });
+          throw new Error(errorMessage);
         }
       } catch (error) {
         console.error("❌ Idea validation failed:", error);
-        throw error;
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error("An unexpected error occurred during validation");
       }
     },
     [fetchUserData]

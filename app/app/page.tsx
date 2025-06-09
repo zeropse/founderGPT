@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import IdeaForm from "@/components/app/IdeaForm";
 import PlanCard from "@/components/app/PlanCard";
