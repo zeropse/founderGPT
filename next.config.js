@@ -3,8 +3,6 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: { unoptimized: true },
-  serverExternalPackages: [],
-  // Add webpack configuration to handle potential issues
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
