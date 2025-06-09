@@ -5,10 +5,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: { unoptimized: true },
-  experimental: {
-    // Disable experimental features that might cause issues
-    serverComponentsExternalPackages: [],
-  },
+  serverExternalPackages: [],
   // Add webpack configuration to handle potential issues
   webpack: (config, { isServer }) => {
     if (!isServer) {
