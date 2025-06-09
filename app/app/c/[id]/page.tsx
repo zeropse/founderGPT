@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, Database, Brain, Zap } from "lucide-react";
@@ -17,6 +17,7 @@ import { ChatHistory, LoadingMessage } from "@/types";
 export default function ChatPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const { user, isPremium } = useUserData();
   const { setChatSelectHandler, setChatDeleteHandler, resetCurrentChat } =
     useSidebarContext();
@@ -25,6 +26,14 @@ export default function ChatPage() {
   const [activeTab, setActiveTab] = useState<string>("validation");
   const [isDownloadingPDF, setIsDownloadingPDF] = useState<boolean>(false);
   const loadingRef = useRef<boolean>(false);
+
+  // Get the tab from searchParams safely
+  useEffect(() => {
+    const tab = searchParams?.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadChatData = async () => {

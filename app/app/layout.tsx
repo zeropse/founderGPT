@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, ReactNode } from "react";
+import { useRef, useEffect, ReactNode, Suspense } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import AppNavbar from "@/components/AppNavbar";
 import Footer from "@/components/Footer";
@@ -39,7 +39,11 @@ function AppLayoutContent({ children }: AppLayoutContentProps) {
             <AppNavbar />
           </header>
 
-          <div className="flex-1">{children}</div>
+          <div className="flex-1">
+            <Suspense fallback={<div className="p-4">Loading...</div>}>
+              {children}
+            </Suspense>
+          </div>
 
           <Footer />
         </SidebarInset>
