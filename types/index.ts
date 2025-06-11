@@ -28,7 +28,7 @@ export interface ChatHistory {
   id: string;
   title: string;
   idea: string;
-  results: ValidationResults;
+  results: ValidationResults | null;
   timestamp: string;
 }
 

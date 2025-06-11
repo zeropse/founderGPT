@@ -291,7 +291,7 @@ export class UserService {
   static async saveChatHistory(
     clerkId: string,
     idea: string,
-    results: ValidationResults
+    results?: ValidationResults
   ): Promise<ChatHistory> {
     try {
       await connectDB();
@@ -309,7 +309,7 @@ export class UserService {
         id: this._generateUUID(),
         title: idea.slice(0, 50) + (idea.length > 50 ? "..." : ""),
         idea,
-        results,
+        results: results || null,
         timestamp: new Date(),
       };
 
@@ -325,6 +325,50 @@ export class UserService {
       };
     } catch (error) {
       console.error("❌ Error saving chat history:", (error as Error).message);
+      throw error;
+    }
+  }
+
+  static async createChatWithIdea(
+    clerkId: string,
+    idea: string
+  ): Promise<ChatHistory> {
+    return this.saveChatHistory(clerkId, idea);
+  }
+
+  static async updateChatWithResults(
+    clerkId: string,
+    chatId: string,
+    results: ValidationResults
+  ): Promise<ChatHistory | null> {
+    try {
+      await connectDB();
+      const user = await User.findOne({ clerkId });
+
+      if (!user) throw new Error("User not found");
+
+      const chatIndex = user.chatHistory?.findIndex(
+        (c: any) => c.id === chatId
+      );
+
+      if (chatIndex === -1) throw new Error("Chat not found");
+
+      user.chatHistory[chatIndex].results = results;
+      await user.save();
+
+      const updatedChat = user.chatHistory[chatIndex];
+      return {
+        id: updatedChat.id,
+        title: updatedChat.title,
+        idea: updatedChat.idea,
+        results: updatedChat.results,
+        timestamp: updatedChat.timestamp.toISOString(),
+      };
+    } catch (error) {
+      console.error(
+        "❌ Error updating chat with results:",
+        (error as Error).message
+      );
       throw error;
     }
   }
