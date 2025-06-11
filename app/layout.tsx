@@ -6,9 +6,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Metadata } from "next";
 import { Suspense } from "react";
 
-// Force dynamic rendering to provide request context for Clerk
-export const dynamic = 'force-dynamic';
-
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
