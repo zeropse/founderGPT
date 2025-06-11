@@ -25,55 +25,15 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>("validation");
   const [isDownloadingPDF, setIsDownloadingPDF] = useState<boolean>(false);
-  const [isPolling, setIsPolling] = useState<boolean>(false);
   const loadingRef = useRef<boolean>(false);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Get the tab from URL search params using Next.js hook
   useEffect(() => {
-    const tab = searchParams.get("tab");
+    const tab = searchParams.get('tab');
     if (tab) {
       setActiveTab(tab);
     }
   }, [searchParams]);
-
-  const startPollingForResults = useCallback(async () => {
-    if (!params.id || pollingRef.current) return;
-
-    const pollForUpdates = async () => {
-      try {
-        const data = await cachedFetch(
-          `/api/chats/${params.id}`,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          },
-          0
-        );
-
-        if (data.success && data.chat.results) {
-          setChatData(data.chat);
-          setIsPolling(false);
-          if (pollingRef.current) {
-            clearInterval(pollingRef.current);
-            pollingRef.current = null;
-          }
-        }
-      } catch (error) {
-        console.error("Error polling for results:", error);
-      }
-    };
-
-    pollingRef.current = setInterval(pollForUpdates, 3000);
-  }, [params.id]);
-
-  useEffect(() => {
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-    };
-  }, []);
 
   useEffect(() => {
     const loadChatData = async () => {
@@ -98,11 +58,6 @@ export default function ChatPage() {
 
         if (data.success) {
           setChatData(data.chat);
-
-          if (!data.chat.results && !isPolling) {
-            setIsPolling(true);
-            startPollingForResults();
-          }
         } else {
           toast.error("Chat not found");
           router.push("/app");
@@ -118,7 +73,7 @@ export default function ChatPage() {
     };
 
     loadChatData();
-  }, [params.id, router, isPolling, startPollingForResults]);
+  }, [params.id, router]);
 
   const handleChatSelect = useCallback(
     (selectedChat: ChatHistory) => {
@@ -160,6 +115,7 @@ export default function ChatPage() {
       setIsDownloadingPDF(true);
       toast.loading("Generating PDF report...", { id: "pdf-download" });
 
+      // Add a small delay to show loading state
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       downloadPDF(chatData.results);
@@ -299,50 +255,15 @@ export default function ChatPage() {
               exit={{ opacity: 0, y: -20 }}
               className="bg-card rounded-xl border shadow-sm"
             >
-              {!chatData.results ? (
-                <DatabaseLoadingSkeleton
-                  title="Analyzing Your Idea"
-                  subtitle="Our AI is creating a comprehensive business analysis"
-                  showProgress={true}
-                  currentStep={0}
-                  steps={[
-                    {
-                      text: "Enhancing Your Idea",
-                      subtext:
-                        "AI is analyzing your concept for clarity and market fit",
-                      icon: <Sparkles className="h-5 w-5 text-violet-500" />,
-                    },
-                    {
-                      text: "Market Research",
-                      subtext:
-                        "Gathering competitive intelligence and market trends",
-                      icon: <Brain className="h-5 w-5 text-blue-500" />,
-                    },
-                    {
-                      text: "Technical Analysis",
-                      subtext:
-                        "Evaluating technology stack and development requirements",
-                      icon: <Database className="h-5 w-5 text-green-500" />,
-                    },
-                    {
-                      text: "Business Planning",
-                      subtext:
-                        "Creating monetization strategies and user personas",
-                      icon: <Zap className="h-5 w-5 text-orange-500" />,
-                    },
-                  ]}
-                />
-              ) : (
-                <ResultsDisplay
-                  results={chatData.results}
-                  isPremium={isPremium}
-                  activeTab={activeTab}
-                  setActiveTab={setActiveTab}
-                  handleDownloadPDF={handleDownloadPDF}
-                  isLoading={false}
-                  isDownloadingPDF={isDownloadingPDF}
-                />
-              )}
+              <ResultsDisplay
+                results={chatData.results}
+                isPremium={isPremium}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                handleDownloadPDF={handleDownloadPDF}
+                isLoading={false}
+                isDownloadingPDF={isDownloadingPDF}
+              />
             </motion.div>
           </AnimatePresence>
         </motion.div>

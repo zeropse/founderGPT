@@ -16,7 +16,7 @@ interface SidebarContextType {
   setChatDeleteHandler: (handler: () => void) => void;
   handleChatSelect: (selectedChat: ChatHistory) => void;
   handleChatDelete: () => void;
-  saveChatHistory: (idea: string, results?: ValidationResults) => string | null;
+  saveChatHistory: (idea: string, results: ValidationResults) => string | null;
   resetCurrentChat: () => void;
 }
 
@@ -63,7 +63,7 @@ export function SidebarProvider({
   }, []);
 
   const saveChatHistory = useCallback(
-    (idea: string, results?: ValidationResults): string | null => {
+    (idea: string, results: ValidationResults): string | null => {
       if (sidebarRef.current && sidebarRef.current.saveChatHistory) {
         return sidebarRef.current.saveChatHistory(idea, results);
       }

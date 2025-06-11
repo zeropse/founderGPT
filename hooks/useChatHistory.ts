@@ -14,13 +14,8 @@ interface UseChatHistoryReturn {
   handleChatDelete: (chatId: string, onDelete?: () => void) => Promise<void>;
   saveChatHistory: (
     idea: string,
-    results?: ValidationResults
-  ) => Promise<string | null>;
-  createChatWithIdea: (idea: string) => Promise<string | null>;
-  updateChatWithResults: (
-    chatId: string,
     results: ValidationResults
-  ) => Promise<void>;
+  ) => Promise<string | null>;
   resetCurrentChat: () => void;
   refetchChats: () => Promise<void>;
 }
@@ -113,16 +108,16 @@ export function useChatHistory(): UseChatHistoryReturn {
 
   const saveChatHistory = async (
     idea: string,
-    results?: ValidationResults
+    results: ValidationResults
   ): Promise<string | null> => {
-    if (idea) {
+    if (results && idea && !currentChatId) {
       try {
         const response = await fetch("/api/chats", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ idea, results, action: "create" }),
+          body: JSON.stringify({ idea, results }),
         });
 
         const data = await response.json();
@@ -155,41 +150,6 @@ export function useChatHistory(): UseChatHistoryReturn {
     return null;
   };
 
-  const createChatWithIdea = async (idea: string): Promise<string | null> => {
-    return saveChatHistory(idea);
-  };
-
-  const updateChatWithResults = async (
-    chatId: string,
-    results: ValidationResults
-  ): Promise<void> => {
-    try {
-      const response = await fetch(`/api/chats/${chatId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ results }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        const updatedChats = chatHistories.map((chat) =>
-          chat.id === chatId ? { ...chat, results } : chat
-        );
-        setChatHistories(updatedChats);
-        apiCache.clear("/api/chats");
-        apiCache.clear(`/api/chats/${chatId}`);
-      } else {
-        toast.error(data.error || "Failed to update chat");
-      }
-    } catch (error) {
-      console.error("Error updating chat with results:", error);
-      toast.error("Failed to update chat with results");
-    }
-  };
-
   const resetCurrentChat = (): void => {
     setCurrentChatId(null);
   };
@@ -201,8 +161,6 @@ export function useChatHistory(): UseChatHistoryReturn {
     handleChatSelect,
     handleChatDelete,
     saveChatHistory,
-    createChatWithIdea,
-    updateChatWithResults,
     resetCurrentChat,
     refetchChats: () => fetchChats(true),
   };

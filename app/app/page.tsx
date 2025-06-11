@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useUserData } from "@/hooks/useUserData";
 import { useSidebarContext } from "@/hooks/useSidebarContext";
-import { useChatHistory } from "@/hooks/useChatHistory";
 import { ChatHistory } from "@/types";
 
 export default function AppPage() {
@@ -39,8 +38,6 @@ export default function AppPage() {
     setChatSelectHandler,
     setChatDeleteHandler,
   } = useSidebarContext();
-
-  const { createChatWithIdea, updateChatWithResults } = useChatHistory();
   const [idea, setIdea] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [retryTimeout, setRetryTimeout] = useState<number | null>(null);
@@ -109,55 +106,63 @@ export default function AppPage() {
     }
 
     setIsLoading(true);
+    setEnhancementStep(0);
+
+    const progressSteps = [
+      () => setEnhancementStep(1),
+      () => setEnhancementStep(2),
+      () => setEnhancementStep(3),
+      () => setEnhancementStep(4),
+      () => setEnhancementStep(5),
+      () => setEnhancementStep(6),
+    ];
+
+    let stepIndex = 0;
+    const progressInterval = setInterval(() => {
+      if (stepIndex < progressSteps.length) {
+        progressSteps[stepIndex]();
+        stepIndex++;
+      }
+    }, 2000);
 
     try {
-      const newChatId = await saveChatHistory(idea.trim());
+      const data = await validateIdea(idea);
 
-      if (!newChatId) {
-        toast.error("Failed to create chat. Please try again.");
-        return;
+      if (saveChatHistory) {
+        try {
+          const newChatId = await saveChatHistory(idea.trim(), data);
+
+          if (newChatId) {
+            toast.success("Idea validated successfully!");
+            router.push(`/app/c/${newChatId}`);
+            return;
+          } else {
+            return;
+          }
+        } catch (error) {
+          console.error("Failed to save chat history:", error);
+          toast.error("Failed to save your analysis. Please try again.");
+          return;
+        }
       }
 
-      toast.success("Chat created! Analyzing your idea...");
-      router.push(`/app/c/${newChatId}`);
-
-      setEnhancementStep(0);
-      const progressSteps = [
-        () => setEnhancementStep(1),
-        () => setEnhancementStep(2),
-        () => setEnhancementStep(3),
-        () => setEnhancementStep(4),
-        () => setEnhancementStep(5),
-        () => setEnhancementStep(6),
-      ];
-
-      let stepIndex = 0;
-      const progressInterval = setInterval(() => {
-        if (stepIndex < progressSteps.length) {
-          progressSteps[stepIndex]();
-          stepIndex++;
-        }
-      }, 2000);
-
-      validateIdea(idea)
-        .then(async (data) => {
-          await updateChatWithResults(newChatId, data);
-          toast.success("Idea validation complete!");
-        })
-        .catch((error) => {
-          console.error("Background validation error:", error);
-        })
-        .finally(() => {
-          clearInterval(progressInterval);
-          setIsLoading(false);
-          setEnhancementStep(0);
-        });
+      toast.error("Unable to save analysis. Please refresh and try again.");
     } catch (error) {
-      console.error("Error creating chat:", error);
-      toast.error("Failed to create chat. Please try again.");
+      console.error("Validation error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to validate idea. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      clearInterval(progressInterval);
       setIsLoading(false);
       setEnhancementStep(0);
     }
+  };
+
+  const handleUpgrade = () => {
+    router.push("/app/billing");
   };
 
   const containerAnimation = {
@@ -294,9 +299,8 @@ export default function AppPage() {
                       Validate Your Idea
                     </h3>
                     <p className="text-muted-foreground max-w-sm mx-auto">
-                      Enter your idea in the form and hit &quot;Validate
-                      Idea&quot; to get started. Our AI will analyze and provide
-                      insights.
+                      Enter your idea in the form and hit "Validate Idea" to get
+                      started. Our AI will analyze and provide insights.
                     </p>
                   </div>
                 </div>

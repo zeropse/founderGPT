@@ -1,10 +1,11 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { ChatHistory, Order } from "@/types";
 
 interface ChatHistoryDocument extends Document {
   id: string;
   title: string;
   idea: string;
-  results: any | null;
+  results: any;
   timestamp: Date;
 }
 
@@ -56,8 +57,7 @@ const ChatHistorySchema = new Schema<ChatHistoryDocument>({
   },
   results: {
     type: Schema.Types.Mixed,
-    required: false,
-    default: null,
+    required: true,
   },
   timestamp: {
     type: Date,
@@ -193,7 +193,6 @@ function orderArrayLimit(val: any[]): boolean {
   return val.length <= 50;
 }
 
-const User =
-  mongoose.models.User || mongoose.model<UserDocument>("User", UserSchema);
+const User = mongoose.models.User || mongoose.model<UserDocument>("User", UserSchema);
 
 export default User;

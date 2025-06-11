@@ -35,51 +35,23 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { idea, results, action = "create" } = await request.json();
+    const { idea, results } = await request.json();
 
-    if (!idea) {
-      return Response.json({ error: "Idea is required" }, { status: 400 });
+    if (!idea || !results) {
+      return Response.json(
+        { error: "Idea and results are required" },
+        { status: 400 }
+      );
     }
 
     try {
-      if (action === "create") {
-        const newChat = await UserService.saveChatHistory(
-          userId,
-          idea,
-          results
-        );
+      const newChat = await UserService.saveChatHistory(userId, idea, results);
 
-        return Response.json({
-          success: true,
-          chat: newChat,
-          message: "Chat created successfully",
-        });
-      } else if (action === "update") {
-        const { chatId } = await request.json();
-        if (!chatId || !results) {
-          return Response.json(
-            { error: "Chat ID and results are required for update" },
-            { status: 400 }
-          );
-        }
-
-        const updatedChat = await UserService.updateChatWithResults(
-          userId,
-          chatId,
-          results
-        );
-
-        return Response.json({
-          success: true,
-          chat: updatedChat,
-          message: "Chat updated successfully",
-        });
-      } else {
-        return Response.json(
-          { error: "Invalid action. Use 'create' or 'update'" },
-          { status: 400 }
-        );
-      }
+      return Response.json({
+        success: true,
+        chat: newChat,
+        message: "Chat saved successfully",
+      });
     } catch (error: unknown) {
       if (
         error instanceof Error &&
@@ -99,13 +71,9 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    console.error("❌ Error processing chat request:", errorMessage);
-
+    console.error("❌ Error saving chat:", errorMessage);
     return Response.json(
-      {
-        success: false,
-        error: errorMessage,
-      },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
