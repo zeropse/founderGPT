@@ -5,10 +5,11 @@ import UserService from "../../../lib/services/UserService";
 const API_CONFIG = {
   baseUrl: "https://openrouter.ai/api/v1/chat/completions",
   model: "meta-llama/llama-3.3-70b-instruct",
-  timeout: 30000,
-  maxRetries: 2,
-  retryDelay: 1000,
-};
+  timeout: 45000,
+  maxRetries: 3,
+  retryDelay: 1500,
+  maxConcurrentRequests: 5,
+} as const;
 
 const SYSTEM_PROMPT = `You are an expert product discovery assistant. You help founders clarify, validate, and break down SaaS/app ideas using industry-standard workflows.
 
@@ -23,21 +24,31 @@ IMPORTANT INSTRUCTIONS:
 
 function validateInput(idea: string): string {
   if (!idea) {
-    throw new ValidationError("Idea is required.");
+    throw new ValidationError("Please provide an idea to validate.");
   }
 
   const trimmedIdea = idea.trim();
   if (trimmedIdea === "") {
-    throw new ValidationError("Idea cannot be empty.");
+    throw new ValidationError(
+      "Your idea cannot be empty. Please describe your product concept."
+    );
   }
 
   if (trimmedIdea.length < 10) {
-    throw new ValidationError("Idea must be at least 10 characters long.");
+    throw new ValidationError(
+      "Please provide more details. Your idea should be at least 10 characters long."
+    );
   }
 
   if (trimmedIdea.length > 2000) {
     throw new ValidationError(
-      "Idea is too long. Please keep it under 2000 characters."
+      "Your idea is too long. Please keep it under 2000 characters for better processing."
+    );
+  }
+
+  if (trimmedIdea.toLowerCase().includes("test") && trimmedIdea.length < 20) {
+    throw new ValidationError(
+      "Please provide a real product idea instead of test input."
     );
   }
 
@@ -45,63 +56,126 @@ function validateInput(idea: string): string {
 }
 
 function validateEnvironment() {
-  if (!process.env.OPENROUTER_API_KEY) {
-    console.error("❌ OPENROUTER_API_KEY environment variable is missing");
+  const requiredEnvVars = ["OPENROUTER_API_KEY"];
+  const missing = requiredEnvVars.filter((env) => !process.env[env]);
+
+  if (missing.length > 0) {
+    console.error(`❌ Missing environment variables: ${missing.join(", ")}`);
     throw new ConfigError(
-      "Missing required environment variable: OPENROUTER_API_KEY. Please check your deployment configuration."
+      `Server configuration error. Missing: ${missing.join(", ")}`
     );
   }
 
-  console.log("✅ OPENROUTER_API_KEY is configured");
+  console.log("✅ All required environment variables are configured");
+}
+
+function getRefererUrl(request?: NextRequest): string {
+  try {
+    if (request) {
+      const host = request.headers.get("host");
+      const forwardedProto = request.headers.get("x-forwarded-proto");
+      const protocol =
+        forwardedProto || (host?.includes("localhost") ? "http" : "https");
+
+      if (host) {
+        return `${protocol}://${host}`;
+      }
+    }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (
+      siteUrl &&
+      siteUrl.startsWith("http") &&
+      !siteUrl.includes("localhost")
+    ) {
+      return siteUrl;
+    }
+
+    const safeFallbacks = [
+      "https://incandescent-blancmange-3a2a1f.netlify.app",
+      "https://foundrgpt.zeropse.org",
+    ];
+
+    return safeFallbacks[0];
+  } catch (error) {
+    console.warn("⚠️ Error determining referer URL, using fallback:", error);
+    return "https://foundrgpt.zeropse.org";
+  }
 }
 
 class ValidationError extends Error {
-  public statusCode: number;
+  public readonly statusCode: number = 400;
+  public readonly type: string = "validation_error";
 
   constructor(message: string) {
     super(message);
     this.name = "ValidationError";
-    this.statusCode = 400;
   }
 }
 
 class ConfigError extends Error {
-  public statusCode: number;
+  public readonly statusCode: number = 500;
+  public readonly type: string = "config_error";
 
   constructor(message: string) {
     super(message);
     this.name = "ConfigError";
-    this.statusCode = 500;
   }
 }
 
 class APIError extends Error {
-  public statusCode: number;
+  public readonly statusCode: number;
+  public readonly type: string = "api_error";
+  public readonly isRetryable: boolean;
 
-  constructor(message: string, statusCode: number = 500) {
+  constructor(
+    message: string,
+    statusCode: number = 500,
+    isRetryable: boolean = false
+  ) {
     super(message);
     this.name = "APIError";
     this.statusCode = statusCode;
+    this.isRetryable = isRetryable;
+  }
+}
+
+class RateLimitError extends APIError {
+  constructor(
+    message: string = "Rate limit exceeded. Please try again later."
+  ) {
+    super(message, 429, true);
+    this.name = "RateLimitError";
   }
 }
 
 class OpenRouterClient {
-  private apiKey: string;
+  private readonly apiKey: string;
+  private readonly refererUrl: string;
+  private activeRequests: number = 0;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, refererUrl: string) {
     this.apiKey = apiKey;
+    this.refererUrl = refererUrl;
   }
 
   async makeRequest(
     prompt: string,
     retryCount: number = 0
   ): Promise<string | null> {
+    if (this.activeRequests >= API_CONFIG.maxConcurrentRequests) {
+      await this.delay(1000);
+    }
+
+    this.activeRequests++;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
     try {
       console.log(
-        `🔄 Making OpenRouter API request (attempt ${retryCount + 1})`
+        `🔄 API request (attempt ${retryCount + 1}/${
+          API_CONFIG.maxRetries + 1
+        })`
       );
 
       const response = await fetch(API_CONFIG.baseUrl, {
@@ -109,54 +183,61 @@ class OpenRouterClient {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.apiKey}`,
-          "HTTP-Referer":
-            process.env.NEXT_PUBLIC_SITE_URL || "https://localhost:3000",
-          "X-Title": "Idea Validator App",
+          "HTTP-Referer": this.refererUrl,
+          "X-Title": "foundrGPT App",
+          "User-Agent": "foundrGPT/1.0",
         },
         body: JSON.stringify({
           model: API_CONFIG.model,
           messages: [
-            {
-              role: "system",
-              content: SYSTEM_PROMPT,
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: prompt },
           ],
           temperature: 0.7,
-          max_tokens: 1000,
+          max_tokens: 1200,
+          top_p: 0.9,
         }),
         signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
-
-      console.log(`📡 OpenRouter API response status: ${response.status}`);
+      console.log(`📡 API response: ${response.status} ${response.statusText}`);
 
       if (!response.ok) {
-        await this.handleAPIError(response, prompt, retryCount);
-        return null;
+        return await this.handleAPIError(response, prompt, retryCount);
       }
 
       const data = await response.json();
 
       if (!data?.choices?.[0]?.message?.content) {
-        console.error("❌ Invalid API response format:", data);
-        throw new APIError(
-          "Invalid API response format: Missing required fields"
-        );
+        console.error("❌ Invalid API response:", {
+          hasChoices: !!data?.choices,
+          data,
+        });
+        throw new APIError("Invalid API response format");
       }
 
-      console.log("✅ OpenRouter API request successful");
-      return data.choices[0].message.content.trim();
+      const content = data.choices[0].message.content.trim();
+      if (!content) {
+        throw new APIError("Empty response from API");
+      }
+
+      console.log("✅ API request successful");
+      return content;
     } catch (error: unknown) {
       clearTimeout(timeoutId);
 
       if (error instanceof Error && error.name === "AbortError") {
-        console.error("⏰ Request timed out");
-        throw new APIError("Request timed out. Please try again.", 408);
+        console.error("⏰ Request timeout");
+        if (retryCount < API_CONFIG.maxRetries) {
+          await this.delay(API_CONFIG.retryDelay * (retryCount + 1));
+          return this.makeRequest(prompt, retryCount + 1);
+        }
+        throw new APIError(
+          "Request timed out after multiple attempts",
+          408,
+          true
+        );
       }
 
       if (error instanceof APIError) {
@@ -164,41 +245,56 @@ class OpenRouterClient {
       }
 
       if (retryCount < API_CONFIG.maxRetries) {
-        console.log(
-          `🔄 Retrying request (attempt ${retryCount + 1}/${
-            API_CONFIG.maxRetries
-          })`
-        );
-        await this.delay(API_CONFIG.retryDelay * (retryCount + 1));
+        const delay = API_CONFIG.retryDelay * Math.pow(1.5, retryCount);
+        console.log(`🔄 Retrying in ${delay}ms...`);
+        await this.delay(delay);
         return this.makeRequest(prompt, retryCount + 1);
       }
 
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
+        error instanceof Error ? error.message : "Unknown network error";
       console.error("🌐 Network error:", errorMessage);
-      throw new APIError(`Network error: ${errorMessage}`);
+      throw new APIError(`Network error: ${errorMessage}`, 500, true);
+    } finally {
+      this.activeRequests--;
     }
   }
 
-  async handleAPIError(
+  private async handleAPIError(
     response: Response,
     prompt: string,
     retryCount: number
   ): Promise<string | null> {
-    const errorData = await response.json().catch(() => ({}));
+    let errorData: any = {};
 
-    console.error("API Error Details:", {
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = { error: "Unable to parse error response" };
+    }
+
+    console.error("API Error:", {
       status: response.status,
       statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
-      data: errorData,
+      error: errorData,
     });
 
-    if (errorData.error?.code === "insufficient_quota") {
+    if (response.status === 401) {
+      throw new ConfigError("Invalid API key configuration");
+    }
+
+    if (response.status === 403) {
       throw new APIError(
-        "API quota exceeded. Please check your account billing and usage details.",
-        429
+        "API access denied. Please check your account status.",
+        403
       );
+    }
+
+    if (
+      errorData.error?.code === "insufficient_quota" ||
+      response.status === 402
+    ) {
+      throw new APIError("API quota exceeded. Please check your billing.", 429);
     }
 
     if (response.status === 429) {
@@ -208,180 +304,190 @@ class OpenRouterClient {
         await this.delay(delay);
         return this.makeRequest(prompt, retryCount + 1);
       }
-      throw new APIError("Rate limit exceeded. Please try again later.", 429);
+      throw new RateLimitError();
+    }
+
+    if (response.status >= 500 && retryCount < API_CONFIG.maxRetries) {
+      console.log(`Server error ${response.status}, retrying...`);
+      await this.delay(API_CONFIG.retryDelay * (retryCount + 1));
+      return this.makeRequest(prompt, retryCount + 1);
     }
 
     const errorMessage = this.extractErrorMessage(errorData, response);
     throw new APIError(errorMessage, response.status);
   }
 
-  extractErrorMessage(errorData: any, response: Response): string {
-    return (
-      errorData.error?.message ||
-      errorData.message ||
-      errorData.detail ||
-      errorData.errors?.[0]?.message ||
-      (typeof errorData.error === "string" ? errorData.error : null) ||
-      `HTTP ${response.status}: ${response.statusText}`
+  private extractErrorMessage(errorData: any, response: Response): string {
+    const possibleMessages = [
+      errorData.error?.message,
+      errorData.message,
+      errorData.detail,
+      errorData.errors?.[0]?.message,
+      typeof errorData.error === "string" ? errorData.error : null,
+    ];
+
+    const message = possibleMessages.find(
+      (msg) => msg && typeof msg === "string"
     );
+    return message || `HTTP ${response.status}: ${response.statusText}`;
   }
 
-  delay(ms: number): Promise<void> {
+  private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
 const PROMPTS = {
   enhance: (idea: string) =>
-    `Refine and rewrite this product idea for clarity and impact. Make it specific. Work with the information provided and make reasonable assumptions if details are missing. Do not ask for additional information. Do not include introductory phrases like "Here is" or "Here are". Start directly with the enhanced idea: (minimum 150-200 words)\n\n${idea}`,
+    `Refine and enhance this product idea for maximum clarity and market appeal. Make it specific and actionable. Work with the provided information and make reasonable assumptions where needed. Provide a comprehensive description (150-250 words) that includes the core problem, target audience, and unique value proposition. Start directly with the enhanced idea:\n\n${idea}`,
 
   marketValidation: (enhancedIdea: string) =>
-    `Analyze this SaaS/app idea for market fit, uniqueness, and potential competitors. Provide actionable insights in bullet format. Make reasonable assumptions about the target market and provide concrete analysis. Do not include introductory phrases like "Here are the insights" or similar. Start directly with bullet points:\n\n${enhancedIdea}`,
+    `Analyze this SaaS/app idea for market viability, competition, and growth potential. Provide specific, actionable insights in bullet format covering: market size, competitive landscape, differentiation opportunities, potential challenges, and validation strategies. Start directly with bullet points:\n\n${enhancedIdea}`,
 
   mvpFeatures: (enhancedIdea: string) =>
-    `List exactly 5 core MVP features that would make this idea functional but lean. Focus on essential features only. Format as a numbered list. Make decisions based on the idea provided without requesting clarification. Do not include introductory phrases like "Here are the 5 core features" or similar. Start directly with the numbered list:\n\n${enhancedIdea}`,
+    `Identify exactly 5 essential MVP features that would create a functional, valuable product while remaining lean. Focus on core functionality that directly addresses the main user problem. Format as a numbered list with brief explanations. Start directly with the numbered list:\n\n${enhancedIdea}`,
 
   techStack: (enhancedIdea: string) =>
-    `Suggest the most suitable and modern tech stack for building this MVP. Consider scalability and ease of development. Make specific technology recommendations based on the idea provided. Do not include introductory phrases. Format exactly as:
-Frontend: [specific technology/framework]
-Backend: [specific technology/framework]
-Database: [specific database solution]
-Hosting: [specific hosting platform]
-Authentication: [specific auth solution]
-APIs/Communication: [REST/GraphQL/WebSockets/etc.]
-Storage (File/Media): [Cloud storage solution]
-CI/CD: [build & deployment automation tool]
-Monitoring & Logging: [monitoring/logging service]
-Optional AI/ML: [if relevant, specify model or platform]
-
-Idea: ${enhancedIdea}`,
+    `Recommend a modern, scalable tech stack optimized for rapid MVP development and future growth. Consider development speed, cost-effectiveness, and scalability. Format exactly as shown below:\n\nFrontend: [specific framework/technology]\nBackend: [specific framework/technology]\nDatabase: [specific solution]\nHosting: [specific platform]\nAuthentication: [specific service]\nAPIs/Communication: [specific approach]\nStorage (File/Media): [specific solution]\nCI/CD: [specific tool]\nMonitoring & Logging: [specific service]\nOptional AI/ML: [if relevant]\n\nIdea: ${enhancedIdea}`,
 
   monetization: (enhancedIdea: string) =>
-    `Recommend 3-5 realistic monetization strategies for a bootstrapped solo founder launching this product. Focus on strategies suitable for early-stage products. Format as bullet points. Provide specific recommendations without asking for business model preferences. Do not include introductory phrases like "Here are the monetization strategies" or similar. Start directly with bullet points:\n\n${enhancedIdea}`,
+    `Suggest 4-5 realistic monetization strategies suitable for a bootstrap startup. Focus on strategies that can generate revenue early while scaling with growth. Consider different customer segments and value propositions. Start directly with bullet points:\n\n${enhancedIdea}`,
 
   landingPage: (enhancedIdea: string) =>
-    `Create compelling landing page copy for this product. Make it conversion-focused and benefit-driven. Work with the information provided and create compelling copy without requesting additional details. Do not include introductory phrases. Format exactly as:
-Headline: [compelling headline under 60 characters]
-Subheading: [descriptive subheading under 120 characters]
-CTA: [call to action button text under 20 characters]
-Benefit 1: [first key benefit]
-Benefit 2: [second key benefit]
-Benefit 3: [third key benefit]
-
-Idea: ${enhancedIdea}`,
+    `Create high-converting landing page copy focused on benefits and clear value proposition. Make it compelling and action-oriented. Format exactly as:\n\nHeadline: [compelling headline under 60 characters]\nSubheading: [descriptive subheading under 120 characters]\nCTA: [action button text under 20 characters]\nBenefit 1: [primary benefit]\nBenefit 2: [secondary benefit]\nBenefit 3: [additional benefit]\n\nIdea: ${enhancedIdea}`,
 
   userPersonas: (enhancedIdea: string) =>
-    `Define 2 distinct user personas for this product. Make them specific and realistic based on the idea provided. Make reasonable assumptions about the target users. Do not include introductory phrases. Format exactly as:
-
-1. [Persona Name and Role]
-Pain Points: [their main challenges]
-Goals: [what they want to achieve]
-Solution: [how the product helps them]
-
-2. [Persona Name and Role]
-Pain Points: [their main challenges]
-Goals: [what they want to achieve]
-Solution: [how the product helps them]
-
-Idea: ${enhancedIdea}`,
-};
+    `Define 2 distinct, realistic user personas based on this product. Make them specific with clear demographics, motivations, and use cases. Format exactly as:\n\n1. [Persona Name and Title]\nPain Points: [specific challenges they face]\nGoals: [what they want to achieve]\nSolution: [how your product helps them]\n\n2. [Persona Name and Title]\nPain Points: [specific challenges they face]\nGoals: [what they want to achieve]\nSolution: [how your product helps them]\n\nIdea: ${enhancedIdea}`,
+} as const;
 
 class DataProcessor {
   static processBulletPoints(text: string): string[] {
-    if (!text) return [];
+    if (!text?.trim()) return [];
+
     return text
       .split("\n")
-      .map((line: string) => line.trim())
-      .filter((line: string) => line !== "" && line.length > 0)
-      .map((line: string) => line.replace(/^[•\-\*]\s*/, "").trim())
-      .filter((line: string) => line.length > 0);
+      .map((line) => line.trim())
+      .filter((line) => line && line.length > 3)
+      .map((line) => line.replace(/^[•\-\*\d+\.]\s*/, "").trim())
+      .filter((line) => line.length > 0 && !line.match(/^[^\w\s]*$/));
   }
 
   static extractField(lines: string[], fieldName: string): string | null {
-    const line = lines.find((line: string) =>
-      line.toLowerCase().includes(fieldName.toLowerCase() + ":")
-    );
-    if (line) {
-      const colonIndex = line.indexOf(":");
-      return colonIndex !== -1 ? line.substring(colonIndex + 1).trim() : null;
+    const regex = new RegExp(`^${fieldName}\\s*:\\s*(.+)$`, "i");
+
+    for (const line of lines) {
+      const match = line.match(regex);
+      if (match && match[1]?.trim()) {
+        return match[1].trim();
+      }
     }
     return null;
   }
 
-  static processTechStack(text: string): any {
-    if (!text) return null;
-
-    const lines = text.split("\n").map((line: string) => line.trim());
-    return {
-      frontend: this.extractField(lines, "frontend") || "Not specified",
-      backend: this.extractField(lines, "backend") || "Not specified",
-      database: this.extractField(lines, "database") || "Not specified",
-      hosting: this.extractField(lines, "hosting") || "Not specified",
-      authentication:
-        this.extractField(lines, "authentication") || "Not specified",
-      apis: this.extractField(lines, "APIs/Communication") || "Not specified",
-      storage:
-        this.extractField(lines, "Storage (File/Media)") || "Not specified",
-      ciCd: this.extractField(lines, "CI/CD") || "Not specified",
-      monitoring:
-        this.extractField(lines, "Monitoring & Logging") || "Not specified",
-      optionalAI: this.extractField(lines, "Optional AI/ML") || "Not Needed",
-    };
-  }
-
-  static processLandingPage(text: string): any {
-    if (!text) return null;
+  static processTechStack(text: string): Record<string, string> | null {
+    if (!text?.trim()) return null;
 
     const lines = text
       .split("\n")
-      .map((line: string) => line.trim())
-      .filter((line: string) => line !== "");
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const fields = [
+      "frontend",
+      "backend",
+      "database",
+      "hosting",
+      "authentication",
+      "apis/communication",
+      "storage (file/media)",
+      "ci/cd",
+      "monitoring & logging",
+      "optional ai/ml",
+    ];
+
+    const result: Record<string, string> = {};
+
+    for (const field of fields) {
+      const value =
+        this.extractField(lines, field) ||
+        this.extractField(lines, field.replace(/[()]/g, "")) ||
+        "Not specified";
+
+      const key = field
+        .toLowerCase()
+        .replace(/[^a-z]/g, "")
+        .replace("fileMedia", "storage")
+        .replace("apisommunication", "apis")
+        .replace("monitoringlogging", "monitoring")
+        .replace("optionalaiml", "optionalAI");
+
+      result[key] = value;
+    }
+
+    return result;
+  }
+
+  static processLandingPage(text: string): Record<string, any> | null {
+    if (!text?.trim()) return null;
+
+    const lines = text
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const benefits = lines
+      .filter((line) => /^benefit\s+\d+:/i.test(line))
+      .map((line) => line.replace(/^benefit\s+\d+:\s*/i, "").trim())
+      .filter(Boolean);
 
     return {
-      headline: this.extractField(lines, "headline") || "Not specified",
-      subheading: this.extractField(lines, "subheading") || "Not specified",
+      headline:
+        this.extractField(lines, "headline") || "Transform Your Business",
+      subheading:
+        this.extractField(lines, "subheading") ||
+        "Discover the power of innovation",
       cta: this.extractField(lines, "cta") || "Get Started",
-      benefits: lines
-        .filter((line: string) => line.toLowerCase().startsWith("benefit"))
-        .map((line: string) => line.replace(/^benefit \d+:\s*/i, "").trim())
-        .filter((benefit: string) => benefit !== ""),
+      benefits:
+        benefits.length > 0
+          ? benefits
+          : ["Increase efficiency", "Save time", "Boost productivity"],
     };
   }
 
-  static processUserPersonas(text: string): any[] {
-    if (!text) return [];
+  static processUserPersonas(text: string): Array<Record<string, string>> {
+    if (!text?.trim()) return [];
 
     const sections = text
-      .split(/(?=\d+\.\s)/g)
-      .filter((section: string) => section.trim());
+      .split(/(?=\d+\.\s)/)
+      .filter((section) => section.trim());
 
-    return sections.map((section: string) => {
-      const lines = section
-        .split("\n")
-        .map((line: string) => line.trim())
-        .filter((line: string) => line);
+    return sections
+      .map((section) => {
+        const lines = section
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean);
 
-      const nameMatch = lines[0]?.match(/^\d+\.\s*(.+)$/);
-      const name = nameMatch ? nameMatch[1].trim() : "Unknown Persona";
+        const nameMatch = lines[0]?.match(/^\d+\.\s*(.+)$/);
+        const name = nameMatch?.[1]?.trim() || "Unknown Persona";
 
-      const painPoints = this.extractPersonaContent(lines, "pain points");
-      const goals = this.extractPersonaContent(lines, "goals");
-      const solution = this.extractPersonaContent(lines, "solution");
-
-      return {
-        name,
-        painPoints: painPoints || "Not available",
-        goals: goals || "Not available",
-        solution: solution || "Not available",
-      };
-    });
+        return {
+          name,
+          painPoints:
+            this.extractPersonaContent(lines, "pain points") ||
+            "Various challenges",
+          goals:
+            this.extractPersonaContent(lines, "goals") || "Achieve success",
+          solution:
+            this.extractPersonaContent(lines, "solution") || "Product benefits",
+        };
+      })
+      .filter((persona) => persona.name !== "Unknown Persona");
   }
 
-  static extractPersonaContent(
+  private static extractPersonaContent(
     lines: string[],
     fieldName: string
   ): string | null {
-    const fieldIndex = lines.findIndex((line: string) =>
+    const fieldIndex = lines.findIndex((line) =>
       line.toLowerCase().startsWith(fieldName.toLowerCase() + ":")
     );
 
@@ -393,7 +499,7 @@ class DataProcessor {
 
     if (!content && fieldIndex + 1 < lines.length) {
       const nextLine = lines[fieldIndex + 1];
-      if (!nextLine.toLowerCase().includes(":")) {
+      if (!nextLine.includes(":")) {
         content = nextLine.trim();
       }
     }
@@ -403,72 +509,65 @@ class DataProcessor {
 }
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    console.log("🚀 Starting idea validation request");
+    console.log("🚀 Processing idea validation request");
 
     const { userId } = await auth();
-
     if (!userId) {
-      console.log("❌ Unauthorized request - no userId");
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    console.log("✅ User authenticated:", userId);
-
-    const body = await req.json();
-    const { idea } = body;
-
-    console.log("📝 Idea received, length:", idea?.length || 0);
-
-    const trimmedIdea = validateInput(idea);
-    console.log("✅ Input validation passed");
-
-    validateEnvironment();
-    console.log("✅ Environment validation passed");
-
-    const user = await UserService.getUserByClerkId(userId);
-
-    if (!user) {
-      console.log("❌ User not found in database");
-      throw new ValidationError(
-        "User not found. Please refresh and try again."
+      console.log("❌ Unauthorized request");
+      return Response.json(
+        { error: "Authentication required" },
+        { status: 401 }
       );
     }
 
-    console.log("✅ User found:", {
-      id: user._id,
-      promptsRemaining: user.promptsRemaining,
-      planId: user.planId,
-    });
+    const body = await req.json().catch(() => ({}));
+    const { idea } = body;
+
+    const trimmedIdea = validateInput(idea);
+    validateEnvironment();
+
+    const user = await UserService.getUserByClerkId(userId);
+    if (!user) {
+      throw new ValidationError(
+        "User account not found. Please sign in again."
+      );
+    }
 
     if (user.promptsRemaining <= 0) {
-      console.log("❌ User exceeded daily limit");
-      throw new ValidationError(
-        "You've reached your daily limit. Please upgrade or try again tomorrow."
+      return Response.json(
+        {
+          error: "Daily limit reached",
+          type: "rate_limit",
+          promptsRemaining: 0,
+          upgradeUrl: "/pricing",
+        },
+        { status: 429 }
       );
     }
 
     const isPremium = user.planId === "premium";
-    console.log("💎 User premium status:", isPremium);
 
     await UserService.decrementPromptsRemaining(userId);
-    console.log("✅ Prompts decremented");
 
-    const client = new OpenRouterClient(process.env.OPENROUTER_API_KEY!);
-    console.log("🤖 OpenRouter client initialized");
+    const refererUrl = getRefererUrl(req);
+    const client = new OpenRouterClient(
+      process.env.OPENROUTER_API_KEY!,
+      refererUrl
+    );
 
     const enhancedIdea = await client.makeRequest(PROMPTS.enhance(trimmedIdea));
-
     if (!enhancedIdea) {
-      console.log("❌ Failed to enhance idea");
-      throw new APIError("Failed to enhance the idea. Please try again.");
+      throw new APIError("Failed to process your idea. Please try again.");
     }
-
-    console.log("✅ Idea enhanced successfully");
 
     const results: any = {
       userPrompt: trimmedIdea,
       enhancedIdea,
+      isPremium,
+      processingTime: Date.now() - startTime,
       marketValidation: null,
       mvpFeatures: null,
       techStack: null,
@@ -479,7 +578,7 @@ export async function POST(req: NextRequest) {
 
     if (isPremium) {
       try {
-        console.log("🔄 Processing premium features...");
+        console.log("🔄 Processing premium features");
 
         const premiumPromises = [
           client.makeRequest(PROMPTS.marketValidation(enhancedIdea)),
@@ -490,6 +589,7 @@ export async function POST(req: NextRequest) {
           client.makeRequest(PROMPTS.userPersonas(enhancedIdea)),
         ];
 
+        const premiumResults = await Promise.allSettled(premiumPromises);
         const [
           marketValidation,
           mvpFeatures,
@@ -497,124 +597,75 @@ export async function POST(req: NextRequest) {
           monetization,
           landingPage,
           userPersonas,
-        ] = await Promise.allSettled(premiumPromises);
-
-        console.log("📊 Premium features processing results:", {
-          marketValidation: marketValidation.status,
-          mvpFeatures: mvpFeatures.status,
-          techStack: techStack.status,
-          monetization: monetization.status,
-          landingPage: landingPage.status,
-          userPersonas: userPersonas.status,
-        });
+        ] = premiumResults;
 
         if (marketValidation.status === "fulfilled" && marketValidation.value) {
           results.marketValidation = DataProcessor.processBulletPoints(
             marketValidation.value
           );
         }
-
         if (mvpFeatures.status === "fulfilled" && mvpFeatures.value) {
           results.mvpFeatures = DataProcessor.processBulletPoints(
             mvpFeatures.value
           );
         }
-
         if (techStack.status === "fulfilled" && techStack.value) {
           results.techStack = DataProcessor.processTechStack(techStack.value);
         }
-
         if (monetization.status === "fulfilled" && monetization.value) {
           results.monetization = DataProcessor.processBulletPoints(
             monetization.value
           );
         }
-
         if (landingPage.status === "fulfilled" && landingPage.value) {
           results.landingPage = DataProcessor.processLandingPage(
             landingPage.value
           );
         }
-
         if (userPersonas.status === "fulfilled" && userPersonas.value) {
           results.userPersonas = DataProcessor.processUserPersonas(
             userPersonas.value
           );
         }
 
-        const failedFeatures = [
-          marketValidation,
-          mvpFeatures,
-          techStack,
-          monetization,
-          landingPage,
-          userPersonas,
-        ].filter((result) => result.status === "rejected");
-
-        if (failedFeatures.length > 0) {
-          console.warn(
-            `⚠️ ${failedFeatures.length} premium features failed to process:`,
-            failedFeatures.map((f, i) => ({
-              feature: [
-                "marketValidation",
-                "mvpFeatures",
-                "techStack",
-                "monetization",
-                "landingPage",
-                "userPersonas",
-              ][i],
-              reason: f.status === "rejected" ? f.reason : "unknown",
-            }))
-          );
-        } else {
-          console.log("✅ All premium features processed successfully");
+        const failedCount = premiumResults.filter(
+          (r) => r.status === "rejected"
+        ).length;
+        if (failedCount > 0) {
+          console.warn(`⚠️ ${failedCount} premium features failed`);
+          results.partialFailure = true;
         }
-      } catch (premiumError: unknown) {
-        console.error("❌ Error processing premium features:", premiumError);
-        if (
-          premiumError instanceof APIError &&
-          premiumError.statusCode === 429
-        ) {
-          return Response.json(
-            {
-              error:
-                "Rate limit reached while processing premium features. Please try again in a moment.",
-              results: results,
-            },
-            { status: 429 }
-          );
-        }
+      } catch (premiumError) {
+        console.error("❌ Premium features error:", premiumError);
+        results.premiumError = "Some premium features couldn't be processed";
       }
     }
 
-    console.log("✅ Request processed successfully");
+    results.processingTime = Date.now() - startTime;
+    console.log(`✅ Request completed in ${results.processingTime}ms`);
+
     return Response.json(results);
   } catch (error: unknown) {
-    console.error("❌ Error processing request:", error);
-
-    // Log detailed error information for debugging
-    if (error instanceof Error) {
-      console.error("Error details:", {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      });
-    }
+    const processingTime = Date.now() - startTime;
+    console.error("❌ Request failed:", error);
 
     if (error instanceof ValidationError) {
-      console.log("🚫 Validation error:", error.message);
       return Response.json(
-        { error: error.message, type: "validation_error" },
+        {
+          error: error.message,
+          type: error.type,
+          processingTime,
+        },
         { status: error.statusCode }
       );
     }
 
     if (error instanceof ConfigError) {
-      console.log("⚙️ Configuration error:", error.message);
       return Response.json(
         {
-          error: "Server configuration error. Please contact support.",
-          type: "config_error",
+          error: "Service temporarily unavailable",
+          type: error.type,
+          processingTime,
           details:
             process.env.NODE_ENV === "development" ? error.message : undefined,
         },
@@ -623,18 +674,22 @@ export async function POST(req: NextRequest) {
     }
 
     if (error instanceof APIError) {
-      console.log("🌐 API error:", error.message);
       return Response.json(
-        { error: error.message, type: "api_error" },
+        {
+          error: error.message,
+          type: error.type,
+          isRetryable: error.isRetryable,
+          processingTime,
+        },
         { status: error.statusCode }
       );
     }
 
-    console.log("🤔 Unknown error type");
     return Response.json(
       {
-        error: "An unexpected error occurred. Please try again.",
+        error: "An unexpected error occurred",
         type: "unknown_error",
+        processingTime,
         details:
           process.env.NODE_ENV === "development" ? String(error) : undefined,
       },
