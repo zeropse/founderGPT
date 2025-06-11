@@ -299,8 +299,9 @@ export default function AppPage() {
                       Validate Your Idea
                     </h3>
                     <p className="text-muted-foreground max-w-sm mx-auto">
-                      Enter your idea in the form and hit "Validate Idea" to get
-                      started. Our AI will analyze and provide insights.
+                      Enter your idea in the form and hit &ldquo;Validate
+                      Idea&rdquo; to get started. Our AI will analyze and
+                      provide insights.
                     </p>
                   </div>
                 </div>

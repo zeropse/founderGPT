@@ -197,7 +197,7 @@ export default function PrivacyPolicy() {
             },
             {
               title: "Database",
-              description: "MongoDB Atlas for data storage",
+              description: "MongoDB for data storage",
             },
           ],
         },

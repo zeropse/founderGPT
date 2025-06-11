@@ -117,16 +117,7 @@ export function DatabaseLoadingSkeleton({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
             className="w-full bg-muted rounded-full h-2"
-          >
-            <motion.div
-              className="bg-primary rounded-full h-2"
-              initial={{ width: "0%" }}
-              animate={{
-                width: `${((currentStep + 1) / loadingMessages.length) * 100}%`,
-              }}
-              transition={{ duration: 0.5 }}
-            />
-          </motion.div>
+          />
         )}
       </CardHeader>
 
